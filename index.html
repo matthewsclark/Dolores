@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dolores River &amp; McPhee</title>
+<meta name="description" content="Live river flows, McPhee Reservoir storage, snowpack and spill odds for the Dolores River basin, from Lizard Head Pass to Gateway.">
+<meta property="og:title" content="Dolores River &amp; McPhee">
+<meta property="og:description" content="Live flows, McPhee storage, snowpack and spill odds, snow to slickrock.">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#0d1720">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Layout idea: scroll = descend the river. A live spine runs down the left gutter from the peaks to Cisco; each section sits at its gauges. */
+  --top:#0d1720; --bottom:#1d140f;
+  --fg:#ece6da; --muted:#93a0aa; --faint:rgba(236,230,218,.10);
+  --water:#63c7e2; --snow:#dbe6ee; --rock:#cf7448; --ag:#d8b24c;
+  --panel:rgba(255,255,255,.035); --ok:#7fc79d; --warn:#e3b04b; --bad:#ef6b5b;
+  --display:"Barlow Condensed","Arial Narrow",sans-serif;
+  --body:"Source Serif 4",Georgia,serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --gut:58px;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{background:var(--top)}
+body{margin:0;color:var(--fg);font-family:var(--body);font-size:17px;line-height:1.55;
+  background:linear-gradient(180deg,var(--top) 0%,#121a22 35%,#181712 70%,var(--bottom) 100%);}
+a{color:var(--water)}
+.wrap{max-width:780px;margin:0 auto;padding:0 18px}
+.mono{font-family:var(--mono);font-size:12px;letter-spacing:.02em;color:var(--muted)}
+.eyebrow{font-family:var(--display);font-weight:500;letter-spacing:.14em;text-transform:uppercase;font-size:14px;color:var(--muted)}
+h1,h2,h3{font-family:var(--display);font-weight:500;margin:0;text-wrap:balance;letter-spacing:.01em}
+h1{font-size:clamp(34px,8vw,54px);line-height:1.02}
+h2{font-size:clamp(28px,6vw,38px);line-height:1.05}
+h3{font-size:20px;letter-spacing:.04em}
+p{margin:0;max-width:62ch}
+.num{font-family:var(--display);font-weight:500;font-variant-numeric:tabular-nums;line-height:1}
+.lede{color:#cfc8bb}
+header{padding:24px 0 6px}
+.brand{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.wordmark{font-family:var(--display);font-weight:600;letter-spacing:.32em;font-size:15px}
+.mode{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--faint);border-radius:999px;padding:4px 11px}
+.mode .dot{animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.35}}
+.hero{display:grid;gap:16px;padding:20px 0 10px}
+.profile{width:100%;height:auto;display:block}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--faint);border-radius:999px;padding:6px 12px;font-family:var(--mono);font-size:12px;background:var(--panel)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex:none}
+.pill{display:inline-block;font-family:var(--mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;padding:2px 8px;border-radius:999px;border:1px solid currentColor}
+.pill.minor{color:var(--warn)}.pill.moderate{color:#f08a4b}.pill.major{color:var(--bad);background:rgba(239,107,91,.12)}.pill.action{color:#c9d36a}
+.reach{display:grid;grid-template-columns:var(--gut) 1fr;position:relative}
+.gutter{position:relative}
+.spine{position:absolute;top:0;bottom:0;left:22px;width:var(--w,3px);transform:translateX(-50%);
+  background:repeating-linear-gradient(180deg,var(--c,var(--water)) 0 10px,transparent 10px 22px);
+  opacity:var(--o,.9);animation:flow var(--dur,1.4s) linear infinite;border-radius:4px}
+.spine.base{animation:none;background:var(--faint);width:1px;opacity:1}
+.spine.pool{animation:none;background:linear-gradient(180deg,rgba(99,199,226,.10),rgba(99,199,226,.32));border-left:1px solid rgba(99,199,226,.5);border-right:1px solid rgba(99,199,226,.5);border-radius:0;width:26px}
+@keyframes flow{to{background-position:0 22px}}
+.node{position:absolute;top:30px;left:22px;transform:translate(-50%,0);width:14px;height:14px;border-radius:50%;background:var(--top);border:2px solid var(--c,var(--water))}
+.elev{position:absolute;top:52px;left:6px;font-family:var(--mono);font-size:11px;color:var(--muted);writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap}
+.content{padding:24px 0 46px;display:grid;gap:16px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--faint);border-radius:14px;padding:16px;min-width:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
+.tile{background:var(--panel);border:1px solid var(--faint);border-radius:12px;padding:12px 14px;display:grid;gap:6px;align-content:start;min-width:0}
+.tile .num{font-size:34px}
+.unit{font-family:var(--mono);font-size:12px;color:var(--muted);margin-left:4px}
+.tile .top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.muted{color:var(--muted)}
+.tankrow{display:grid;grid-template-columns:110px 1fr;gap:16px;align-items:center}
+.stat{display:grid;gap:2px}
+.stat .num{font-size:44px}
+.stat .sm{font-size:28px}
+.split{display:grid;gap:14px}
+.seg{display:inline-flex;border:1px solid var(--faint);border-radius:999px;padding:2px}
+.seg button{font-family:var(--mono);font-size:12px;color:var(--muted);background:none;border:0;border-radius:999px;padding:5px 11px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:rgba(99,199,226,.16);color:var(--fg)}
+.seg button:focus-visible{outline:2px solid var(--water);outline-offset:1px}
+.agrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.agrid label{display:grid;gap:4px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.agrid label span{color:var(--fg)}
+.agrid em{font-style:normal;font-size:11px}
+.agrid input{font-family:var(--display);font-size:24px;color:var(--fg);background:rgba(0,0,0,.25);border:1px solid var(--faint);border-radius:8px;padding:6px 10px;width:100%}
+.agrid input:focus-visible{outline:2px solid var(--water);outline-offset:1px}
+.agrid input.edited{border-color:var(--water)}
+.reset{font-family:var(--mono);font-size:12px;color:var(--muted);background:none;border:1px solid var(--faint);border-radius:999px;padding:5px 11px;cursor:pointer}
+.reset:focus-visible{outline:2px solid var(--water)}
+.readout{font-family:var(--mono);font-size:12px;color:var(--fg);min-height:18px}
+.chart svg{display:block;touch-action:pan-y}
+input[type=range]{width:100%;accent-color:var(--water);height:28px}
+input[type=range]:focus-visible{outline:2px solid var(--water);outline-offset:4px;border-radius:6px}
+.verdict{font-family:var(--display);font-size:24px;line-height:1.15;font-weight:500}
+.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.math{font-family:var(--mono);font-size:12px;color:var(--muted);border-top:1px dashed var(--faint);padding-top:10px;line-height:1.7}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.share{height:14px;border-radius:7px;overflow:hidden;display:flex;background:var(--faint)}
+.snowrow{display:grid;grid-template-columns:1fr 64px 100px;gap:10px;align-items:center;padding:10px 0;border-top:1px solid var(--faint)}
+.snowrow:first-of-type{border-top:0}
+.snowrow .nm{font-family:var(--display);font-size:19px;font-weight:500;line-height:1.1}
+.snowrow .v{text-align:right;font-family:var(--display);font-size:22px;font-variant-numeric:tabular-nums}
+.bandhead{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:12px 0 2px}
+.bandhead.low{color:var(--warn)}
+.gap{border:1px dashed rgba(227,176,75,.5);border-radius:10px;padding:10px 12px;color:#d9c9a6;font-family:var(--mono);font-size:12px;margin-top:6px}
+.badge{font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--faint);border-radius:4px;padding:1px 5px;color:var(--muted);margin-left:6px;vertical-align:2px}
+footer{padding:30px 0 60px;border-top:1px solid var(--faint);margin-top:10px;display:grid;gap:10px}
+footer ul{padding-left:18px;margin:4px 0 0;font-family:var(--mono);font-size:12px;color:var(--muted)}
+footer li{margin:4px 0}
+svg text{font-family:var(--mono);font-size:11px;fill:var(--muted)}
+svg .lbl{fill:var(--fg)}
+.flowpath{stroke-dasharray:2 7;animation:dash 1.2s linear infinite}
+@keyframes dash{to{stroke-dashoffset:-9}}
+@media (max-width:480px){:root{--gut:44px}.spine,.node{left:16px}.elev{left:2px}.tankrow{grid-template-columns:90px 1fr}.stat .num{font-size:38px}}
+@media (prefers-reduced-motion:reduce){.spine,.flowpath,.mode .dot{animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="brand">
+    <span class="wordmark">DOLORES <span class="mono" style="letter-spacing:.04em;font-weight:400">· unofficial</span></span>
+    <span class="mono mode" id="mode"><span class="dot" id="modeDot"></span><span id="modeText">Loading gauges…</span></span>
+  </div>
+</header>
+
+<section class="hero" aria-labelledby="h-hero">
+  <div class="eyebrow">Snow to slickrock · McPhee &amp; the Dolores River</div>
+  <h1 id="h-hero">Reading the river…</h1>
+  <p class="lede" id="heroSub"></p>
+  <svg class="profile" viewBox="0 0 360 262" role="img" aria-label="Schematic longitudinal section of the Dolores River from Lizard Head Pass to Gateway, with McPhee Reservoir about halfway down">
+    <defs><pattern id="hatch" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="5" stroke="#e3b04b" stroke-opacity=".28" stroke-width="1.2"/></pattern></defs>
+    <rect x="0" y="20" width="360" height="56.8" fill="#dbe6ee" fill-opacity=".05"/>
+    <rect x="0" y="76.8" width="360" height="71" fill="url(#hatch)"/>
+    <text x="352" y="36" text-anchor="end">Snow sensors · 9,160′ and up</text>
+    <text x="352" y="94" text-anchor="end" fill="#e3b04b">Low snow · 7–9,000′ · no sensors</text>
+    <path d="M20 33.4 L41.8 97.7 L94.9 150.1 L113.6 161 L183.8 202.8 L261.8 220.8 L339.8 234.7 L339.8 262 L20 262 Z" fill="#cf7448" fill-opacity=".10"/>
+    <path d="M20 33.4 L41.8 97.7 L94.9 150.1 L113.6 161 L183.8 202.8 L261.8 220.8 L339.8 234.7" fill="none" stroke="#cf7448" stroke-opacity=".55" stroke-width="1"/>
+    <polygon points="98.7,152.2 113.6,152.2 113.6,160.4" fill="#63c7e2" fill-opacity=".85"/>
+    <line x1="94.9" y1="150.5" x2="113.6" y2="150.5" stroke="#63c7e2" stroke-dasharray="2 2" stroke-width="1"/>
+    <rect x="112.6" y="148.5" width="3" height="13" fill="#ece6da" fill-opacity=".8"/>
+    <path class="flowpath" d="M20 33.4 L41.8 97.7 L94.9 150.1" fill="none" stroke="#63c7e2" stroke-width="2.2" stroke-linecap="round"/>
+    <path class="flowpath" d="M113.6 160.4 L183.8 202.8 L261.8 220.8 L339.8 234.7" fill="none" stroke="#63c7e2" stroke-width="2.2" stroke-linecap="round"/>
+    <g fill="#0d1720" stroke="#63c7e2" stroke-width="1.5">
+      <circle cx="20" cy="33.4" r="3.5"/><circle cx="41.8" cy="97.7" r="3.5"/><circle cx="94.9" cy="150.1" r="3.5"/>
+      <circle cx="183.8" cy="202.8" r="3.5"/><circle cx="261.8" cy="220.8" r="3.5"/><circle cx="339.8" cy="234.7" r="3.5"/>
+    </g>
+    <text class="lbl" x="27" y="31">Lizard Head Pass</text>
+    <text class="lbl" x="48" y="95">Rico</text>
+    <text class="lbl" x="101" y="143">Dolores · McPhee</text>
+    <text class="lbl" x="190" y="198">Slick Rock</text>
+    <text class="lbl" x="266" y="210">Bedrock</text>
+    <text class="lbl" x="357" y="225" text-anchor="end">Gateway</text>
+  </svg>
+  <p class="mono">Longitudinal section, schematic. Vertical scale greatly exaggerated; distances and town elevations approximate.</p>
+  <div class="chips" id="chips" role="list"></div>
+</section>
+</div>
+
+<main class="wrap" style="padding-top:18px">
+
+<section class="reach" aria-labelledby="h-snow" style="--c:var(--snow);--w:2px;--dur:3.2s;--o:.55">
+  <div class="gutter"><div class="spine base"></div><div class="spine"></div><div class="node"></div><span class="elev">11,580′ Black Mesa</span></div>
+  <div class="content">
+    <div class="eyebrow">01 · Snow</div>
+    <h2 id="h-snow">—</h2>
+    <p class="lede" id="snowLede"></p>
+    <div class="card" id="snowList" aria-live="polite"></div>
+    <div class="legend"><span>Big number: snow water equivalent (SWE), the water you'd get by melting the snowpack</span><span>Deep: measured snow depth</span><span>Precip: total since Oct 1, rain and snow</span></div>
+  </div>
+</section>
+
+<section class="reach" id="reachHead" aria-labelledby="h-head">
+  <div class="gutter"><div class="spine base"></div><div class="spine"></div><div class="node"></div><span class="elev">6,950′ Dolores gauge</span></div>
+  <div class="content">
+    <div class="eyebrow">02 · Headwaters</div>
+    <h2 id="h-head">—</h2>
+    <div class="card split">
+      <div class="readout" id="hydroReadout">Touch or hover the chart to read it.</div>
+      <div class="chart" id="hydro"></div>
+      <div class="legend"><span><span class="sw" style="background:#9fdcec"></span>Below Rico (high country)</span><span><span class="sw" style="background:var(--water)"></span>Everything else above Dolores</span><span><span class="sw" style="background:transparent;border:1px dashed var(--fg)"></span>NWS forecast</span></div>
+    </div>
+    <p class="lede" id="headLede"></p>
+    <div class="grid2" id="headTiles"></div>
+  </div>
+</section>
+
+<section class="reach" aria-labelledby="h-mcp">
+  <div class="gutter"><div class="spine base"></div><div class="spine pool"></div><div class="node"></div><span class="elev">6,924′ full pool</span></div>
+  <div class="content">
+    <div class="eyebrow">03 · McPhee Reservoir</div>
+    <h2 id="h-mcp">—</h2>
+    <div class="card tankrow">
+      <svg id="tank" viewBox="0 0 110 220" width="100%" role="img" aria-label="McPhee storage gauge"></svg>
+      <div class="split">
+        <div class="stat"><span class="mono" id="storLabel">Storage</span><div><span class="num" id="storNow">—</span><span class="unit">af</span></div><span class="mono" id="storPct"></span></div>
+        <div class="stat"><span class="mono" style="color:var(--warn)">Space to fill</span><div><span class="num sm" style="color:var(--warn)" id="space">—</span><span class="unit">af</span></div></div>
+        <div class="stat"><span class="mono" style="color:var(--water)" id="projLabel">Projected</span><div><span class="num sm" style="color:var(--water)" id="projNow">—</span><span class="unit">af</span></div><span class="mono" id="projSub"></span></div>
+        <div class="stat"><span class="mono">Gained since yesterday</span><div><span class="num sm" id="gain24">—</span><span class="unit">af</span></div><span class="mono" id="inflowRate"></span></div>
+      </div>
+    </div>
+    <div class="card split">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><div class="eyebrow" id="storTitle">This storm</div>
+        <div class="seg" role="group" aria-label="Chart range"><button type="button" id="rStorm" aria-pressed="true">This storm</button><button type="button" id="rSeason" aria-pressed="false">Since July 1</button></div></div>
+      <div class="readout" id="storReadout">Touch or hover the chart to read it.</div>
+      <div class="chart" id="storChart"></div>
+      <p class="mono" id="storNote">Daily average storage, Colorado DWR station MCPRESCO. The shaded floor is the 152,000 af inactive pool; the top line is full pool.</p>
+    </div>
+  </div>
+</section>
+
+<section class="reach" aria-labelledby="h-spill">
+  <div class="gutter"><div class="spine base"></div><div class="spine pool"></div></div>
+  <div class="content">
+    <div class="eyebrow">04 · Will it spill?</div>
+    <h2 id="h-spill">Drag the spring runoff and watch the lower river.</h2>
+    <div class="card split">
+      <label for="aj" class="mono">April–July inflow to McPhee, as % of average</label>
+      <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap"><span class="num" style="font-size:52px" id="ajPct">100%</span><span class="mono" id="ajKaf"></span></div>
+      <input type="range" id="aj" min="10" max="180" step="5" value="100">
+      <div id="budget"></div>
+      <div class="verdict" id="verdict">—</div>
+      <div class="kv">
+        <div class="tile"><span class="mono">Spill volume</span><div><span class="num" style="font-size:30px" id="spill">—</span><span class="unit">KAF</span></div></div>
+        <div class="tile"><span class="mono">Boating days at <span id="boatLbl">~1,200</span> cfs</span><div><span class="num" style="font-size:30px" id="days">—</span></div></div>
+      </div>
+      <div class="legend"><span><span class="sw" style="background:rgba(227,176,75,.5)"></span><span id="bandLegend">Likely fill threshold</span></span><span><span class="sw" style="background:var(--water)"></span>Your scenario</span><span><span class="sw" style="background:var(--muted)"></span>Past years, approx.</span></div>
+      <div class="math" id="math"></div>
+    </div>
+    <div class="card split" id="assume">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+        <div class="eyebrow">Your assumptions</div>
+        <button type="button" class="reset" id="aReset">Reset to defaults</button>
+      </div>
+      <p class="mono">These drive the projection and the spill model. Edits save in this browser only.</p>
+      <div class="agrid">
+        <label for="aFactor"><span>Inflow reaching storage</span><input id="aFactor" type="number" step="0.01" min="0.5" max="1.2" inputmode="decimal"><em>× gauge flow · Oct budget: 0.97</em></label>
+        <label for="aLo"><span>Fill threshold, low</span><input id="aLo" type="number" step="5" min="0" max="600" inputmode="numeric"><em>KAF Apr–Jul, at Oct 30 storage</em></label>
+        <label for="aHi"><span>Fill threshold, high</span><input id="aHi" type="number" step="5" min="0" max="600" inputmode="numeric"><em>KAF Apr–Jul, at Oct 30 storage</em></label>
+        <label for="aAvg"><span>Average Apr–Jul inflow</span><input id="aAvg" type="number" step="5" min="50" max="600" inputmode="numeric"><em>KAF · 30-yr avg cited by DWCD</em></label>
+        <label for="aBoat"><span>Boating release</span><input id="aBoat" type="number" step="50" min="300" max="5000" inputmode="numeric"><em>cfs used to count boating days</em></label>
+      </div>
+      <div class="mono" id="aErr" style="color:var(--bad);min-height:16px"></div>
+    </div>
+  </div>
+</section>
+
+<section class="reach" id="reachAg" aria-labelledby="h-ag" style="--c:var(--ag);--o:.4">
+  <div class="gutter"><div class="spine base"></div><div class="spine"></div><div class="node"></div><span class="elev">Great Cut Dike</span></div>
+  <div class="content">
+    <div class="eyebrow" style="color:var(--ag)">05 · Out to the fields</div>
+    <h2 id="h-ag">Most of the Dolores leaves through the side door, into the San Juan basin.</h2>
+    <div class="grid2" id="agTiles"></div>
+    <p class="lede">The Dolores Project serves about 61,660 irrigated acres: full service around Dove Creek and Towaoc, supplemental water for the Montezuma Valley. A full supply is 22 inches per acre. 2026 was one of the worst seasons on record.</p>
+  </div>
+</section>
+
+<section class="reach" id="reachLow" aria-labelledby="h-low" style="--c:var(--rock)">
+  <div class="gutter"><div class="spine base"></div><div class="spine"></div><div class="node"></div><span class="elev">4,943′ Bedrock gauge</span></div>
+  <div class="content">
+    <div class="eyebrow" style="color:var(--rock)">06 · The lower Dolores</div>
+    <h2 id="h-low">—</h2>
+    <div class="card split">
+      <div class="mono" id="shareLabel">At Bedrock</div>
+      <div class="share" id="shareBar" role="img"></div>
+      <div class="legend" id="shareLegend"></div>
+    </div>
+    <div class="card">
+      <div class="eyebrow" style="margin-bottom:8px">Boating bands · log scale</div>
+      <div id="bands"></div>
+      <div class="legend" style="margin-top:6px"><span>800–1K minimal</span><span>1–1.2K good</span><span>1.2–3K prime</span><span>3K+ swift, few eddies</span></div>
+    </div>
+    <div class="grid2" id="lowTiles"></div>
+  </div>
+</section>
+</main>
+
+<footer class="wrap">
+  <div class="gap" style="color:var(--fg)">Unofficial, built for curiosity. River and reservoir data are provisional and can be revised. The spill estimate is a rough personal model, not a forecast from DWCD or Reclamation. For flood safety, follow the National Weather Service in Grand Junction; for release schedules, follow DWCD.</div>
+  <h3>Where the numbers come from</h3>
+  <p class="lede" id="srcNote"></p>
+  <ul>
+    <li><a href="https://waterdata.usgs.gov/monitoring-location/USGS-09166500/">USGS</a> instantaneous flow · 09165000 Rico · 09166500 Dolores · 09166950 Lost Canyon · 09168730 Slick Rock · 09171100 Bedrock · 09179450 Gateway · 09180000 Cisco</li>
+    <li><a href="https://water.noaa.gov/gauges/dolc2">NOAA National Water Prediction Service</a> · flood categories, stage, and 7-day forecasts</li>
+    <li><a href="https://dwr.state.co.us/Tools/Stations">Colorado DWR</a> · MCPRESCO storage · DOLBMCCO release · Dolores Tunnel, Dove Creek, Lone Pine, U Lateral and Towaoc canals</li>
+    <li><a href="https://wcc.sc.egov.usda.gov/">NRCS</a> SNOTEL · Black Mesa, Sharkstooth, El Diente Peak, Lizard Head Pass, Lone Cone, Scotch Creek · Groundhog snow course</li>
+    <li>Not yet wired: CBRFC April–July McPhee forecast (from January), DWCD release notes and allocation</li>
+  </ul>
+</footer>
+
+<script>
+(function(){
+"use strict";
+var C={water:"#63c7e2",ice:"#9fdcec",warn:"#e3b04b",muted:"#93a0aa",fg:"#ece6da",rock:"#cf7448",ag:"#d8b24c",snow:"#dbe6ee",bad:"#ef6b5b",faint:"rgba(236,230,218,.12)"};
+var NS="http://www.w3.org/2000/svg", CAP=381195, INACTIVE=152000, OCT30=204582;
+var DEF={factor:0.97,lo:210,hi:280,avg:295,boat:1200},A=Object.assign({},DEF),AKEY="dolores-assumptions-v1";
+try{var sv=JSON.parse(localStorage.getItem(AKEY)||"null");if(sv)Object.keys(DEF).forEach(function(k){if(typeof sv[k]==="number"&&isFinite(sv[k]))A[k]=sv[k]})}catch(e){}
+function $(id){return document.getElementById(id)}
+function el(t,a,p){var e=document.createElementNS(NS,t);for(var k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e}
+function txt(p,x,y,s,a){var e=el("text",Object.assign({x:x,y:y},a||{}),p);e.textContent=s;return e}
+function h(tag,cls,text){var e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e}
+function fmt(n,d){return n==null||isNaN(n)?"—":Number(n).toLocaleString("en-US",{maximumFractionDigits:d||0})}
+var TZ={timeZone:"America/Denver"};
+function when(ms){return new Intl.DateTimeFormat("en-US",Object.assign({month:"short",day:"numeric",hour:"numeric",minute:"2-digit"},TZ)).format(new Date(ms))}
+function day(ms){return new Intl.DateTimeFormat("en-US",Object.assign({month:"short",day:"numeric"},TZ)).format(new Date(ms))}
+function isFlood(c){return c==="minor"||c==="moderate"||c==="major"}
+function pill(c){if(!c||c==="no_flooding"||c==="not_defined"||c==="obs_not_current")return null;var s=h("span","pill "+c,c==="action"?"near flood":c+" flood");return s}
+
+/* ---------- live loader (works on any normal web host; blocked inside Claude's viewer) ---------- */
+var GAUGES=[["rico","Dolores below Rico","09165000","DRRC2","upper"],["westfork","West Fork near Stoner","09166000",null,"upper"],["dolores","Dolores at Dolores","09166500","DOLC2","upper"],["lostcanyon","Lost Canyon Creek","09166950","LCCC2","upper"],["belowdam","Below McPhee Dam",null,"DRMC2","lower"],["slickrock","Slick Rock","09168730","SLIC2","lower"],["bedrock","Near Bedrock","09171100","DBDC2","lower"],["sanmiguel","San Miguel at Uravan",null,"SMUC2","lower"],["gateway","Near Gateway","09179450","DGAC2","lower"],["cisco","Near Cisco, UT","09180000","DOLU1","lower"]];
+var SNOW=[["1185:CO:SNTL","Black Mesa",11580],["1060:CO:SNTL","Sharkstooth",10730],["465:CO:SNTL","El Diente Peak",10210],["586:CO:SNTL","Lizard Head Pass",10190],["589:CO:SNTL","Lone Cone",9730],["739:CO:SNTL","Scotch Creek",9160],["08M03:CO:SNOW","Groundhog",8970]];
+var DIV=[["MCPRESCO","McPhee storage"],["DOLBMCCO","Release below dam"],["DOLTUNCO","Dolores Tunnel"],["DOVCANCO","Dove Creek Canal"],["MVIDIVCO","Lone Pine Canal (MVIC)"],["UCANALCO","U Lateral (MVIC)"],["TOWCANCO","Towaoc Canal"]];
+function getJ(u){var c=new AbortController();var t=setTimeout(function(){c.abort()},15000);return fetch(u,{signal:c.signal}).then(function(r){clearTimeout(t);if(!r.ok)throw new Error(r.status);return r.json()})}
+function mdy(d){return (d.getMonth()+1)+"/"+d.getDate()+"/"+d.getFullYear()}
+function loadLive(){
+  var now=new Date(), out={generated:now.toISOString(),mode:"live",gauges:{},mcphee:{},diversions:[],snow:[]};
+  var sites=GAUGES.filter(function(g){return g[2]}).map(function(g){return g[2]}).join(",");
+  var dwr="https://dwr.state.co.us/Rest/GET/api/v2/telemetrystations";
+  var start=new Date(now.getTime()-124*864e5), wy=new Date(now.getMonth()>=9?now.getFullYear():now.getFullYear()-1,9,1);
+  var iso=function(d){return d.toISOString().slice(0,10)};
+  var usgsP=getJ("https://waterservices.usgs.gov/nwis/iv/?format=json&sites="+sites+"&parameterCd=00060&period=P30D");
+  var nwpsP=Promise.all(GAUGES.map(function(g){if(!g[3])return null;return Promise.all([getJ("https://api.water.noaa.gov/nwps/v1/gauges/"+g[3]).catch(function(){return null}),getJ("https://api.water.noaa.gov/nwps/v1/gauges/"+g[3]+"/stageflow").catch(function(){return null})])}));
+  var storP=getJ(dwr+"/telemetrytimeseriesday/?abbrev=MCPRESCO&parameter=STORAGE&startDate="+mdy(start)+"&format=json");
+  var relP=getJ(dwr+"/telemetrytimeseriesday/?abbrev=DOLBMCCO&parameter=DISCHRG&startDate="+mdy(start)+"&format=json");
+  var divP=Promise.all(DIV.map(function(d){return getJ(dwr+"/telemetrystation/?abbrev="+d[0]+"&format=json").catch(function(){return null})}));
+  var snowP=getJ("https://wcc.sc.egov.usda.gov/awdbRestApi/services/v1/data?stationTriplets="+SNOW.map(function(s){return s[0]}).join(",")+"&elements=WTEQ,SNWD,PREC&duration=DAILY&beginDate="+iso(wy)+"&endDate="+iso(now)+"&centralTendencyType=MEDIAN").catch(function(){return []});
+  var hb=new Date(now.getTime()-2*864e5),he=new Date(now.getTime()+864e5);
+  var snowHP=getJ("https://wcc.sc.egov.usda.gov/awdbRestApi/services/v1/data?stationTriplets="+SNOW.map(function(s){return s[0]}).join(",")+"&elements=WTEQ,SNWD,PREC&duration=HOURLY&beginDate="+iso(hb)+"&endDate="+iso(he)).catch(function(){return []});
+  return Promise.all([usgsP,nwpsP,storP,relP,divP,snowP,snowHP]).then(function(r){
+    var us={};
+    r[0].value.timeSeries.forEach(function(ts){
+      var sid=ts.sourceInfo.siteCode[0].value,raw=ts.values[0].value.filter(function(x){return +x.value>-999});
+      us[sid]={series:raw.filter(function(x){return new Date(x.dateTime).getUTCMinutes()===0}).map(function(x){return [Date.parse(x.dateTime),+x.value]}),
+               latest:raw.length?[Date.parse(raw[raw.length-1].dateTime),+raw[raw.length-1].value]:null};
+    });
+    GAUGES.forEach(function(g,i){
+      var o={name:g[1],usgs:g[2],lid:g[3],reach:g[4],series:[],latest:null,forecast:[],flood:null,stage:null};
+      if(g[2]&&us[g[2]]){o.series=us[g[2]].series;o.latest=us[g[2]].latest}
+      var n=r[1][i];
+      if(n){
+        var meta=n[0],sf=n[1];
+        if(meta&&meta.status&&meta.status.observed){o.flood=meta.status.observed.floodCategory;o.stage=meta.status.observed.primary}
+        if(sf){
+          var conv=function(arr){return (arr||[]).filter(function(p){return p.secondary>-999}).map(function(p){return [Date.parse(p.validTime),p.secondary*1000]})};
+          o.forecast=conv(sf.forecast&&sf.forecast.data);
+          var obs=conv(sf.observed&&sf.observed.data);
+          if(!o.series.length&&obs.length){o.series=obs.filter(function(p){return new Date(p[0]).getUTCMinutes()===0});if(!o.series.length)o.series=obs;o.latest=obs[obs.length-1];o.seriesSource="NOAA NWPS"}
+        }
+      }
+      out.gauges[g[0]]=o;
+    });
+    out.mcphee.storage=r[2].ResultList.map(function(x){return [x.measDate.slice(0,10),Math.round(x.measValue)]});
+    out.mcphee.release=r[3].ResultList.map(function(x){return [x.measDate.slice(0,10),x.measValue]});
+    r[4].forEach(function(j,i){if(!j||!j.ResultList||!j.ResultList[0])return;var s=j.ResultList[0];var rec={id:DIV[i][0],name:DIV[i][1],value:s.measValue,unit:s.units,t:s.measDateTime};
+      if(i===0)out.mcphee.latest=rec;else if(i===1)out.mcphee.releaseNow=rec;else out.diversions.push(rec)});
+    var by={},hby={};(r[5]||[]).forEach(function(s){by[s.stationTriplet]=s});(r[6]||[]).forEach(function(s){hby[s.stationTriplet]=s});
+    SNOW.forEach(function(s){var rec={id:s[0],name:s[1],elev:s[2],manual:/SNOW$/.test(s[0])};
+      ((by[s[0]]||{}).data||[]).forEach(function(e){rec[e.stationElement.elementCode]=e.values.map(function(v){return [v.date,v.value==null?null:v.value,v.median==null?null:v.median]})});
+      rec.hourly={};((hby[s[0]]||{}).data||[]).forEach(function(e){var v=e.values.filter(function(x){return x.value!=null});if(v.length)rec.hourly[e.stationElement.elementCode]=[v[v.length-1].date,v[v.length-1].value]});
+      out.snow.push(rec)});
+    if(!out.mcphee.latest)throw new Error("no storage");
+    return out;
+  });
+}
+function loadSnapshot(){return fetch("snapshot.json").then(function(r){if(!r.ok)throw new Error(r.status);return r.json()})}
+
+/* ---------- chart helpers ---------- */
+function scale(d0,d1,r0,r1){return function(v){return r0+(v-d0)/(d1-d0)*(r1-r0)}}
+function pathOf(pts,X,Y){var s="";pts.forEach(function(p,i){s+=(i?"L":"M")+X(p[0]).toFixed(1)+" "+Y(p[1]).toFixed(1)});return s}
+function scrub(svg,W,L,R,X0,X1,onAt){
+  var line=el("line",{y1:0,y2:"100%",stroke:C.fg,"stroke-opacity":".5",visibility:"hidden"},svg);
+  function at(e){var b=svg.getBoundingClientRect(),x=(e.clientX-b.left)/b.width*W;x=Math.max(L,Math.min(W-R,x));line.setAttribute("x1",x);line.setAttribute("x2",x);line.setAttribute("visibility","visible");onAt(X0+(x-L)/(W-L-R)*(X1-X0))}
+  svg.addEventListener("pointermove",at);svg.addEventListener("pointerdown",at);
+}
+function nearest(series,t){var lo=0,hi=series.length-1;if(hi<0)return null;while(hi-lo>1){var m=(lo+hi)>>1;if(series[m][0]<t)lo=m;else hi=m}return Math.abs(series[lo][0]-t)<Math.abs(series[hi][0]-t)?series[lo]:series[hi]}
+function spark(host,series,opt){
+  host.innerHTML="";if(!series||series.length<2){return}
+  var W=Math.max(140,host.clientWidth||160),H=opt.h||44,P=3;
+  var s=el("svg",{viewBox:"0 0 "+W+" "+H,width:"100%",height:H,"aria-hidden":"true"},host);
+  var all=series.concat(opt.fc||[]);
+  var x0=series[0][0],x1=all[all.length-1][0],ymax=Math.max.apply(null,all.map(function(p){return p[1]}))*1.08||1;
+  var X=scale(x0,x1,P,W-P),Y=scale(0,ymax,H-P,P);
+  el("path",{d:pathOf(series,X,Y)+"L"+X(series[series.length-1][0])+" "+(H-P)+"L"+X(x0)+" "+(H-P)+"Z",fill:opt.color,"fill-opacity":".14"},s);
+  el("path",{d:pathOf(series,X,Y),fill:"none",stroke:opt.color,"stroke-width":1.6},s);
+  if(opt.fc&&opt.fc.length)el("path",{d:pathOf([series[series.length-1]].concat(opt.fc),X,Y),fill:"none",stroke:C.fg,"stroke-opacity":".55","stroke-dasharray":"3 3"},s);
+  var e=series[series.length-1];el("circle",{cx:X(e[0]),cy:Y(e[1]),r:3,fill:opt.color},s);
+}
+function lastN(series,days){if(!series||!series.length)return [];var t0=series[series.length-1][0]-days*864e5;return series.filter(function(p){return p[0]>=t0})}
+
+/* ---------- render ---------- */
+function render(D){
+  var G=D.gauges, M=D.mcphee, live=D.mode==="live";
+  $("modeDot").style.background=live?C.ok||"#7fc79d":C.warn;
+  $("modeText").textContent=(live?"Live · ":"Snapshot · ")+when(Date.parse(D.generated))+" MT";
+  $("srcNote").textContent=live?"Pulled just now from public government feeds; USGS and NWS readings are provisional."
+    :"Claude's page viewer blocks outside data, so this copy shows a snapshot pulled from the same public feeds at the time above. Hosted on its own site, the page reads the feeds live. Provisional data.";
+
+  var dol=G.dolores, rico=G.rico, bed=G.bedrock;
+  var stor=M.latest?M.latest.value:null, space=CAP-stor, pct=stor/CAP*100;
+  var storDaily=M.storage||[], todayKey=M.latest?M.latest.t.slice(0,10):"";
+  var prev=null;for(var i=storDaily.length-1;i>=0;i--){if(storDaily[i][0]<todayKey){prev=storDaily[i];break}}
+  var gain=prev?stor-prev[1]:null;
+  var rel=M.releaseNow?M.releaseNow.value:null;
+
+  /* hero */
+  var dc=dol&&dol.latest?dol.latest[1]:null;
+  if(dol&&isFlood(dol.flood)) $("h-hero").textContent="The Dolores is in "+dol.flood+" flood at Dolores: "+fmt(dc)+" cfs and pouring into McPhee.";
+  else $("h-hero").textContent="McPhee needs about "+fmt(Math.round(space/1000))+",000 acre-feet before the lower river runs.";
+  $("heroSub").textContent="McPhee holds "+fmt(stor)+" acre-feet and is "+fmt(pct,1)+"% full. It needs "+fmt(space)+" more to fill."+(gain>0?" It gained "+fmt(gain)+" since yesterday.":"");
+  var chips=$("chips");chips.innerHTML="";
+  function chip(color,text){var c=h("span","chip");c.setAttribute("role","listitem");var d=h("span","dot");d.style.background=color;c.appendChild(d);c.appendChild(document.createTextNode(text));chips.appendChild(c)}
+  if(dol&&dol.latest)chip(isFlood(dol.flood)?C.bad:C.water,"Dolores "+fmt(dc)+" cfs"+(isFlood(dol.flood)?" · "+dol.flood+" flood":""));
+  chip(C.water,"McPhee "+fmt(pct,1)+"%"+(gain>0?" · +"+fmt(gain)+" af/day":""));
+  var lc=G.lostcanyon;if(lc&&isFlood(lc.flood))chip(C.bad,"Lost Canyon Cr. · "+lc.flood+" flood stage");
+  if(bed&&bed.latest&&rel!=null)chip(C.rock,"Bedrock "+fmt(bed.latest[1])+" cfs · "+fmt(100*(1-rel/bed.latest[1]),1)+"% not from the dam");
+
+  /* snow */
+  var sn=D.snow||[], wsum=0,wmed=0,psum=0,pmed=0;
+  sn.forEach(function(s){var w=last(s.WTEQ),p=last(s.PREC);if(w&&w[1]!=null&&w[2]!=null&&p&&p[1]!=null&&p[2]!=null){wsum+=w[1];wmed+=w[2];psum+=p[1];pmed+=p[2]}});
+  var pPct=pmed?psum/pmed*100:null;
+  $("h-snow").textContent=pPct?"Precipitation since October 1 is running "+fmt(pPct/100,1)+"× normal."+(psum>2.5*wsum?" Most of it is gone as rain or melt.":""):"Snow season is just starting.";
+  $("snowLede").textContent="Every NRCS snow site in the upper basin, top to bottom. The lowest automated sensor is Scotch Creek at 9,160′. Below that, nothing reports daily.";
+  var L=$("snowList");L.innerHTML="";
+  function band(label,low){L.appendChild(h("div","bandhead"+(low?" low":""),label))}
+  var bands=[[10000,"Above 10,000′"],[9000,"9,000–10,000′"],[0,"Below 9,000′"]],bi=-1;
+  sn.slice().sort(function(a,b){return b.elev-a.elev}).forEach(function(s){
+    var b=s.elev>=10000?0:s.elev>=9000?1:2;if(b!==bi){bi=b;band(bands[b][1],b===2)}
+    var row=h("div","snowrow");var left=h("div");var nm=h("div","nm",s.name);
+    if(s.manual){var bd=h("span","badge","manual");nm.appendChild(bd)}
+    left.appendChild(nm);
+    var w=last(s.WTEQ),p=last(s.PREC),HR=s.hourly||{};
+    var tW=HR.WTEQ?snoT(HR.WTEQ[0]):w?snoT(w[0]+" 23:00"):null;
+    if(HR.WTEQ)w=[HR.WTEQ[0],HR.WTEQ[1],w?w[2]:null];
+    var tP=HR.PREC?snoT(HR.PREC[0]):p&&p[1]!=null?snoT(p[0]+" 23:00"):null;if(HR.PREC)p=[HR.PREC[0],HR.PREC[1],p?p[2]:null];
+    var newest=Math.max(tW||0,tP||0,HR.SNWD?snoT(HR.SNWD[0]):0);
+    var sub=fmt(s.elev)+"′";
+    if(p&&p[1]!=null&&tP&&newest-tP<12*36e5)sub+=" · precip "+fmt(p[1],1)+"″"+(p[2]?" ("+fmt(p[1]/p[2]*100)+"%)":"");
+    left.appendChild(h("div","mono",sub));
+    if(!s.manual&&newest&&(!tP||newest-tP>=12*36e5)){var wn=h("div","mono",tP?"precip gauge silent since "+when(tP):"precip gauge not reporting");wn.style.color=C.warn;left.appendChild(wn)}
+    if(!s.manual&&newest&&Date.now()-newest>18*36e5){var wn2=h("div","mono","station silent since "+when(newest));wn2.style.color=C.warn;left.appendChild(wn2)}
+    var sp=h("div");sp.setAttribute("aria-hidden","true");
+    var v=h("div","v");
+    var dp=HR.SNWD?[HR.SNWD[0],HR.SNWD[1]]:last(s.SNWD);
+    if(w&&w[1]!=null){v.textContent=fmt(w[1],1)+"″";
+      [ "water (SWE)", dp&&dp[1]!=null?fmt(dp[1])+"″ deep":"", w[2]==null?"new site":w[2]<1?"median "+fmt(w[2],1)+"″":fmt(w[1]/w[2]*100)+"% of med" ].filter(Boolean).forEach(function(t){var vs=h("div","mono",t);vs.style.textAlign="right";v.appendChild(vs)})}
+    else{v.textContent="—";(s.manual?["monthly","Jan–May"]:["no data"]).forEach(function(t){var vs2=h("div","mono",t);vs2.style.textAlign="right";v.appendChild(vs2)})}
+    row.appendChild(left);row.appendChild(sp);row.appendChild(v);L.appendChild(row);
+    var ser=(s.WTEQ||[]).filter(function(x){return x[1]!=null}).map(function(x){return [Date.parse(x[0]),x[1]]});
+    requestAnimationFrame(function(){spark(sp,ser,{color:C.snow,h:30})});
+  });
+  var gap=h("div","gap","No automated snow sensor exists below 9,160′ in the Dolores basin. Groundhog is a manual snow course, read about monthly. The nearest low SNOTEL is Cascade #2 (8,990′), over the divide in the Animas basin.");L.appendChild(gap);
+
+  /* headwaters hydrograph */
+  var ser=lastN(dol.series,14), rs=lastN(rico.series,14);
+  var restS=ser.map(function(p){var r=nearest(rs,p[0]);return [p[0],Math.max(0,p[1]-(r&&Math.abs(r[0]-p[0])<36e5?r[1]:0))]});
+  var rpk=Math.max.apply(null,ser.map(function(p){return p[1]}));
+  var restNow=restS.length?restS[restS.length-1][1]:null;
+  $("h-head").textContent=dc>2000?"Most of this flood is coming from below the high country.":"The upper river, gauge by gauge.";
+  $("headLede").textContent=(rico.latest&&dc)?("Right now Rico reads "+fmt(rico.latest[1])+" cfs; the other "+fmt(dc-rico.latest[1])+" cfs at Dolores comes from the West Fork and the ungauged middle basin, about 400 square miles of mid-elevation country. That middle number is the low-elevation signal to watch in spring."):"";
+  drawHydro($("hydro"),ser,rs,dol.forecast||[]);
+  var HT=$("headTiles");HT.innerHTML="";
+  [["rico","8,412′ gauge · high snow"],["westfork","No live flow reported"],["lostcanyon","Low-snow tributary straight into McPhee"],["dolores","Main inflow to McPhee"]].forEach(function(x){tile(HT,G[x[0]],x[1],C.water)});
+
+  /* McPhee */
+  $("h-mcp").textContent=gain>3000?"The storm is filling McPhee by the hour.":"Pulled back from the bottom, a long way from full.";
+  $("storLabel").textContent="Storage · "+when(Date.parse(M.latest.t));
+  $("storNow").textContent=fmt(stor);$("storPct").textContent=fmt(pct,1)+"% of 381,195 af · active ≈ "+fmt(stor-INACTIVE)+" af";
+  $("space").textContent=fmt(space);$("gain24").textContent=gain!=null?(gain>=0?"+":"")+fmt(gain):"—";
+  $("inflowRate").textContent=dc?("At "+fmt(dc)+" cfs, the river delivers ≈"+fmt(dc*1.9835)+" af a day"):"";
+  drawTank($("tank"),stor);
+
+  var dsum=(D.diversions||[]).reduce(function(a,d){return a+(+d.value||0)},0);
+  var proj=project(M,dol,dsum),pe=proj?proj[proj.length-1]:null;
+  if(pe){$("projLabel").textContent="Projected · "+day(pe[0]);$("projNow").textContent=fmt(Math.round(pe[1]/1000)*1000);
+    $("projSub").textContent="≈"+fmt(pe[1]/CAP*100)+"% full · ≈"+fmt(Math.round((CAP-pe[1])/1000)*1000)+" af still to fill";
+    $("heroSub").textContent+=" NWS forecast runoff should bring it to about "+fmt(Math.round(pe[1]/1000)*1000)+" af by "+day(pe[0])+".";}
+  drawStorage($("storChart"),storDaily,M.latest,proj);
+  if(proj)$("storNote").textContent="Solid: daily average storage, Colorado DWR MCPRESCO. Dashed: projection from the NWS 7-day forecast for Dolores at Dolores, times "+A.factor.toFixed(2)+", less today’s release and canal flows. October’s daily water budget gave 0.97: storage rose 97% of what the gauge passed after outflows; the rest is evaporation and measurement error. The bigger uncertainty is the forecast itself.";
+
+  /* spill */
+  window.__spill={stor:stor,proj:pe?pe[1]:null,projDay:pe?day(pe[0]):null};spillUpdate();
+
+  /* irrigation */
+  var AT=$("agTiles");AT.innerHTML="";var divSum=0;
+  (D.diversions||[]).forEach(function(d){divSum+=+d.value||0;var t=h("div","tile");t.appendChild(h("span","mono",d.name));
+    var n=h("div");var nn=h("span","num",(+d.value||0)<0.5?"Off":fmt(d.value,1));nn.style.color=C.ag;n.appendChild(nn);if((+d.value||0)>=0.5)n.appendChild(h("span","unit","cfs"));t.appendChild(n);
+    t.appendChild(h("span","mono","DWR "+d.id+" · "+when(Date.parse(d.t))));AT.appendChild(t)});
+  setSpine($("reachAg"),divSum);
+
+  /* lower river */
+  var bc=bed&&bed.latest?bed.latest[1]:null;
+  $("h-low").textContent=(rel!=null&&bc>800)?"The dam is releasing a trickle. The canyon is running on storm water.":"Below the dam, the river runs on what McPhee lets go.";
+  if(bc!=null&&rel!=null){var dp=Math.min(100,rel/bc*100);
+    $("shareLabel").textContent="At Bedrock · "+fmt(bc)+" cfs";
+    var sb=$("shareBar");sb.innerHTML="";var a=h("span");a.style.cssText="width:"+Math.max(dp,0.6)+"%;background:"+C.water;var b2=h("span");b2.style.cssText="width:"+(100-dp)+"%;background:"+C.rock;sb.appendChild(a);sb.appendChild(b2);
+    sb.setAttribute("aria-label","About "+fmt(rel,1)+" cfs from the dam, "+fmt(bc-rel)+" cfs from tributaries");
+    var sl=$("shareLegend");sl.innerHTML="";[[C.water,"Dam release ≈"+fmt(rel,1)+" cfs"],[C.rock,"Disappointment Creek & other tributaries ≈"+fmt(bc-rel)+" cfs"]].forEach(function(x){var s=h("span");var w=h("span","sw");w.style.background=x[0];s.appendChild(w);s.appendChild(document.createTextNode(x[1]));sl.appendChild(s)})}
+  drawBands($("bands"),[["Dam",rel],["Slick Rock",G.slickrock&&G.slickrock.latest&&G.slickrock.latest[1]],["Bedrock",bc]]);
+  var LT=$("lowTiles");LT.innerHTML="";
+  [["belowdam","Fish-pool release"],["slickrock","Below Disappointment Creek"],["bedrock","Top of the canyon country"],["sanmiguel","Joins near Uravan"],["gateway","Below the San Miguel"],["cisco","Last gauge before the Colorado"]].forEach(function(x){tile(LT,G[x[0]],x[1],C.rock)});
+
+  /* spines */
+  setSpine($("reachHead"),dc);setSpine($("reachLow"),bc);
+}
+function project(M,dol,divSum){
+  if(!M.latest||!dol||!dol.forecast||!dol.forecast.length)return null;
+  var t0=Date.parse(M.latest.t),st=M.latest.value,out=[[t0,st]],rel=M.releaseNow?+M.releaseNow.value||0:0;
+  var fc=dol.forecast.filter(function(p){return p[0]>t0});if(fc.length<2)return null;
+  var prev=[t0,dol.latest&&Math.abs(dol.latest[0]-t0)<6*36e5?dol.latest[1]:fc[0][1]];
+  fc.forEach(function(p){var days=(p[0]-prev[0])/864e5;st+=(A.factor*(p[1]+prev[1])/2-rel-divSum)*1.9835*days;out.push([p[0],Math.round(st)]);prev=p});
+  return out;
+}
+function snoT(str){return Date.parse(str.replace(" ","T")+":00-08:00")}
+function last(a){if(!a||!a.length)return null;for(var i=a.length-1;i>=0;i--){if(a[i][1]!=null)return a[i]}return a[a.length-1]}
+function setSpine(sec,cfs){if(!sec||cfs==null)return;var lg=Math.log10(Math.max(1,cfs));sec.style.setProperty("--w",Math.max(1,Math.min(9,(lg-0.3)*2.4)).toFixed(1)+"px");sec.style.setProperty("--dur",Math.max(0.35,3.4-lg*0.75).toFixed(2)+"s")}
+function tile(host,g,sub,color){
+  if(!g)return;var t=h("div","tile");var top=h("div","top");top.appendChild(h("span","mono",g.name));var p=pill(g.flood);if(p)top.appendChild(p);t.appendChild(top);
+  var stale=g.latest&&(Date.now()-g.latest[0]>2*864e5);
+  var n=h("div");
+  if(g.latest&&!stale){n.appendChild(h("span","num",fmt(g.latest[1])));n.appendChild(h("span","unit","cfs"))}
+  else if(g.stage!=null&&g.stage>-999){n.appendChild(h("span","num",fmt(g.stage,1)));n.appendChild(h("span","unit","ft stage"))}
+  else{var d=h("span","num","—");d.style.color=C.muted;n.appendChild(d)}
+  t.appendChild(n);
+  var sp=h("div");t.appendChild(sp);
+  var meta=(g.usgs?"USGS "+g.usgs:"NWS "+g.lid)+(g.latest?" · "+when(g.latest[0]):"");
+  if(stale)meta=(g.usgs?"USGS "+g.usgs:"")+" · flow stale since "+day(g.latest[0]);
+  if(!g.latest&&!g.series.length)meta=(g.usgs?"USGS "+g.usgs+" · ":"")+"no live flow";
+  var mEl=h("span","mono",meta);if(g.latest&&!stale&&Date.now()-g.latest[0]>4*36e5){mEl.textContent="Last reading "+when(g.latest[0])+" · "+(g.usgs?"USGS "+g.usgs:"NWS "+g.lid);mEl.style.color=C.warn}
+  t.appendChild(mEl);t.appendChild(h("span","mono",sub));
+  host.appendChild(t);
+  if(!stale)requestAnimationFrame(function(){spark(sp,lastN(g.series,14),{color:color,fc:(g.forecast||[]).filter(function(p){return !g.latest||p[0]>g.latest[0]}),h:40})});
+}
+function drawHydro(host,dol,rico,fc){
+  host.innerHTML="";if(dol.length<2)return;
+  var W=Math.max(300,host.clientWidth),H=Math.round(Math.min(300,Math.max(200,W*0.5))),L=6,R=46,T=18,B=24;
+  var nowT=dol[dol.length-1][0];fc=fc.filter(function(p){return p[0]>nowT});
+  var x0=dol[0][0],x1=fc.length?fc[fc.length-1][0]:nowT;
+  var ymax=Math.max.apply(null,dol.concat(fc).map(function(p){return p[1]}))*1.08;
+  var X=scale(x0,x1,L,W-R),Y=scale(0,ymax,H-B,T);
+  var s=el("svg",{viewBox:"0 0 "+W+" "+H,width:"100%",role:"img","aria-label":"Dolores at Dolores flow, last 14 days with NWS forecast; split between the Rico gauge and the rest of the upper basin"},host);
+  var step=ymax>6000?2000:ymax>2500?1000:ymax>1000?500:200;
+  for(var v=step;v<ymax;v+=step){el("line",{x1:L,x2:W-R,y1:Y(v),y2:Y(v),stroke:C.faint},s);txt(s,W-R+6,Y(v)+4,v>=1000?(v/1000)+"K":v)}
+  el("rect",{x:X(nowT),y:T,width:Math.max(0,W-R-X(nowT)),height:H-B-T,fill:C.fg,"fill-opacity":".03"},s);
+  var top=dol.map(function(p){return [p[0],p[1]]});
+  var rb=dol.map(function(p){var r=nearest(rico,p[0]);return [p[0],r?Math.min(r[1],p[1]):0]});
+  el("path",{d:pathOf(top,X,Y)+pathOf(rb.slice().reverse(),X,Y).replace(/^M/,"L")+"Z",fill:C.water,"fill-opacity":".35"},s);
+  el("path",{d:pathOf(rb,X,Y)+"L"+X(rb[rb.length-1][0])+" "+Y(0)+"L"+X(rb[0][0])+" "+Y(0)+"Z",fill:C.ice,"fill-opacity":".55"},s);
+  el("path",{d:pathOf(top,X,Y),fill:"none",stroke:C.water,"stroke-width":2},s);
+  if(fc.length)el("path",{d:pathOf([dol[dol.length-1]].concat(fc),X,Y),fill:"none",stroke:C.fg,"stroke-opacity":".7","stroke-dasharray":"4 4","stroke-width":1.5},s);
+  var pk=dol.reduce(function(a,b){return b[1]>a[1]?b:a});
+  el("circle",{cx:X(pk[0]),cy:Y(pk[1]),r:4,fill:C.water},s);
+  txt(s,X(pk[0])-7,Y(pk[1])-2,"peak "+fmt(pk[1]),{"text-anchor":"end",class:"lbl"});
+  txt(s,X(nowT)+5,H-B-6,"forecast",{fill:C.fg});
+  txt(s,L,H-6,day(x0));txt(s,X(nowT),H-6,"now",{"text-anchor":"middle"});if(fc.length)txt(s,W-R,H-6,day(x1),{"text-anchor":"end"});
+  scrub(s,W,L,R,x0,x1,function(t){
+    if(t>nowT&&fc.length){var f=nearest(fc,t);$("hydroReadout").textContent=when(f[0])+" · NWS forecast "+fmt(f[1])+" cfs";return}
+    var d=nearest(dol,t),r=nearest(rico,t);$("hydroReadout").textContent=when(d[0])+" · Dolores "+fmt(d[1])+" cfs · Rico "+fmt(r?r[1]:null)+" · rest "+fmt(d[1]-(r?r[1]:0));
+  });
+}
+function drawTank(svg,stor){
+  svg.innerHTML="";var top=10,H=200,fy=function(v){return top+H*(1-v/CAP)};
+  el("rect",{x:24,y:top,width:62,height:H,rx:4,fill:"none",stroke:C.fg,"stroke-opacity":".35"},svg);
+  el("rect",{x:25,y:fy(stor),width:60,height:fy(0)-fy(stor)-0.5,fill:C.water,"fill-opacity":".85"},svg);
+  el("rect",{x:25,y:fy(INACTIVE),width:60,height:fy(0)-fy(INACTIVE)-0.5,fill:"#0d1720","fill-opacity":".45"},svg);
+  el("line",{x1:18,y1:top,x2:92,y2:top,stroke:C.water,"stroke-dasharray":"3 3"},svg);
+  el("line",{x1:18,y1:fy(INACTIVE),x2:92,y2:fy(INACTIVE),stroke:C.fg,"stroke-opacity":".5"},svg);
+  el("path",{d:"M94 "+(top+1)+" L100 "+(top+1)+" L100 "+(fy(stor)-1)+" L94 "+(fy(stor)-1),fill:"none",stroke:C.warn},svg);
+  txt(svg,55,(fy(INACTIVE)+fy(0))/2+4,"inactive",{"text-anchor":"middle",fill:C.fg,"fill-opacity":".8"});
+}
+function drawStorage(host,daily,latest,proj){
+  host.innerHTML="";if(!daily.length)return;
+  var storm=RANGE==="storm";
+  var pts=daily.map(function(d){return [Date.parse(d[0]+"T12:00:00-07:00"),d[1]]});
+  if(latest)pts.push([Date.parse(latest.t),latest.value]);
+  if(storm){var cut=pts[pts.length-1][0]-18*864e5;pts=pts.filter(function(p){return p[0]>=cut})}
+  var W=Math.max(300,host.clientWidth),H=Math.round(Math.min(260,Math.max(190,W*0.42))),L=6,R=52,T=12,B=22;
+  var x0=pts[0][0],x1=proj?proj[proj.length-1][0]:pts[pts.length-1][0],y0=140000,y1=390000;
+  if(storm){var vals=pts.concat(proj||[]).map(function(p){return p[1]});y0=Math.floor((Math.min.apply(null,vals)-6000)/10000)*10000;y1=Math.ceil((Math.max.apply(null,vals)+12000)/10000)*10000}
+  var X=scale(x0,x1,L,W-R),Y=scale(y0,y1,H-B,T);
+  var s=el("svg",{viewBox:"0 0 "+W+" "+H,width:"100%",role:"img","aria-label":"McPhee storage since July 1 against the inactive pool and full pool"},host);
+  if(!storm){el("rect",{x:L,y:Y(INACTIVE),width:W-R-L,height:Y(y0)-Y(INACTIVE),fill:"#0d1720","fill-opacity":".6"},s);
+    el("line",{x1:L,x2:W-R,y1:Y(CAP),y2:Y(CAP),stroke:C.water,"stroke-dasharray":"3 3"},s);
+    txt(s,W-R+6,Y(CAP)+4,"full");txt(s,W-R+6,Y(INACTIVE)+4,"152K");txt(s,W-R+6,Y(250000)+4,"250K");
+    el("line",{x1:L,x2:W-R,y1:Y(250000),y2:Y(250000),stroke:C.faint},s);}
+  else{for(var g=y0+10000;g<y1;g+=10000){el("line",{x1:L,x2:W-R,y1:Y(g),y2:Y(g),stroke:C.faint},s);txt(s,W-R+6,Y(g)+4,(g/1000)+"K")}
+    txt(s,W-R+6,T+8,"full ↑",{fill:C.water});}
+  el("path",{d:pathOf(pts,X,Y)+"L"+X(pts[pts.length-1][0])+" "+Y(y0)+"L"+X(x0)+" "+Y(y0)+"Z",fill:C.water,"fill-opacity":".18"},s);
+  el("path",{d:pathOf(pts,X,Y),fill:"none",stroke:C.water,"stroke-width":2},s);
+  var lo=pts.reduce(function(a,b){return b[1]<a[1]?b:a});
+  if(!storm){el("circle",{cx:X(lo[0]),cy:Y(lo[1]),r:3,fill:C.warn},s);txt(s,X(lo[0]),Y(lo[1])+16,"low "+fmt(lo[1])+" · "+day(lo[0]),{"text-anchor":"middle",fill:C.warn});}
+  var e=pts[pts.length-1];
+  if(proj){el("path",{d:pathOf(proj,X,Y)+"L"+X(x1)+" "+Y(y0)+"L"+X(proj[0][0])+" "+Y(y0)+"Z",fill:C.water,"fill-opacity":".07"},s);
+    el("path",{d:pathOf(proj,X,Y),fill:"none",stroke:C.water,"stroke-width":2,"stroke-dasharray":"4 3"},s);
+    var pe=proj[proj.length-1];el("circle",{cx:X(pe[0]),cy:Y(pe[1]),r:3.5,fill:"#0d1720",stroke:C.water,"stroke-width":1.5},s);
+    txt(s,X(pe[0])-2,Y(pe[1])-12,"≈"+fmt(Math.round(pe[1]/1000))+"K",{"text-anchor":"end",fill:C.water});
+    if(!storm)el("path",{d:"M"+(X(pe[0])+8)+" "+Y(CAP)+" L"+(X(pe[0])+8)+" "+Y(pe[1]),stroke:C.warn,"stroke-dasharray":"2 3"},s);}
+  else if(!storm)el("path",{d:"M"+(X(e[0])+8)+" "+Y(CAP)+" L"+(X(e[0])+8)+" "+Y(e[1]),stroke:C.warn,"stroke-dasharray":"2 3"},s);
+  el("circle",{cx:X(e[0]),cy:Y(e[1]),r:4,fill:C.water},s);txt(s,X(e[0])-8,Y(e[1])+4,fmt(e[1]),{"text-anchor":"end",class:"lbl"});
+  if(proj)txt(s,X(e[0]),H-5,"now",{"text-anchor":"middle"});
+  txt(s,L,H-5,day(x0));txt(s,W-R,H-5,day(x1),{"text-anchor":"end"});
+  var all=proj?pts.concat(proj.slice(1)):pts;
+  scrub(s,W,L,R,x0,x1,function(t){var p=nearest(all,t);$("storReadout").textContent=day(p[0])+" · "+(p[0]>e[0]?"projected ≈":"")+fmt(p[1])+" af · "+fmt(p[1]/CAP*100,1)+"% full"});
+}
+var PAST=[["’18",46,0],["’26",70,1],["’21",95,0],["’17",420,1]];
+function spillUpdate(){
+  var SP=window.__spill||{}, st=SP.proj||SP.stor||OCT30, shift=(st-OCT30)/1000, FLO=Math.max(0,A.lo-shift), FHI=Math.max(0,A.hi-shift), AVG=A.avg;
+  var pct=+$("aj").value,k=Math.round(AVG*pct/100);
+  $("ajPct").textContent=pct+"%";$("ajKaf").textContent=k+" KAF April–July";
+  var lo=Math.round(Math.max(0,k-FHI)),hi=Math.round(Math.max(0,k-FLO)),v=$("verdict");
+  if(k<FLO){v.textContent="McPhee likely doesn’t fill. Short irrigation supply, no boating release.";v.style.color=C.muted}
+  else if(k<FHI){v.textContent="McPhee probably fills. Any spill is small and short, a fill-and-spill at best.";v.style.color=C.warn}
+  else if(k<FHI+40){v.textContent="A short boating release is possible, if the forecast holds.";v.style.color=C.water}
+  else{v.textContent="A managed boating release is likely.";v.style.color=C.water}
+  $("spill").textContent=hi===0?"0":(lo+"–"+hi);
+  var afd=A.boat*1.9835/1000;$("days").textContent=hi===0?"0":(Math.round(lo/afd)+"–"+Math.round(hi/afd));
+  $("boatLbl").textContent="~"+fmt(A.boat);$("aj").setAttribute("aria-label","April–July inflow as percent of "+AVG+" KAF average");
+  $("bandLegend").textContent="Likely fill threshold"+(SP.proj?" after this storm (≈"+SP.projDay+")":" today")+", "+Math.round(FLO)+"–"+Math.round(FHI)+" KAF";
+  $("math").textContent="Rough model, not DWCD’s. Spill ≈ April–July inflow − fill threshold. The threshold started at "+A.lo+"–"+A.hi+" KAF with Oct 30 storage (204,582 af) and drops one-for-one as the reservoir gains water. It now uses the projected storage after the current storm runoff; it assumes normal winter base flow and normal irrigation use, calibrated loosely against 2023 and 2019. "+fmt(A.boat)+" cfs for a day ≈ "+fmt(A.boat*1.9835)+" af. Official CBRFC forecasts replace this slider from January.";
+  var host=$("budget");host.innerHTML="";var W=Math.max(280,host.clientWidth),H=96,L=6,R=6,MAXK=500;
+  var s=el("svg",{viewBox:"0 0 "+W+" "+H,width:"100%",role:"img","aria-label":"Scenario "+k+" KAF against a fill threshold of "+Math.round(FLO)+" to "+Math.round(FHI)+" KAF"},host);
+  var X=function(v){return L+v/MAXK*(W-L-R)},by=48,bh=14;
+  el("rect",{x:X(0),y:by,width:X(MAXK)-X(0),height:bh,rx:7,fill:C.faint},s);
+  el("rect",{x:X(0),y:by,width:Math.max(0,X(Math.min(k,MAXK))-X(0)),height:bh,rx:7,fill:C.water,"fill-opacity":".85"},s);
+  el("rect",{x:X(FLO),y:by-6,width:X(FHI)-X(FLO),height:bh+12,fill:C.warn,"fill-opacity":".28",stroke:C.warn,"stroke-opacity":".6"},s);
+  el("line",{x1:X(AVG),x2:X(AVG),y1:by-8,y2:by+bh+8,stroke:C.fg,"stroke-opacity":".6"},s);
+  txt(s,X(AVG)+4,by+bh+20,"avg "+AVG);
+  PAST.forEach(function(p){var x=X(p[1]),ty=p[2]?14:28;el("line",{x1:x,x2:x,y1:ty+4,y2:by,stroke:C.muted,"stroke-opacity":".6"},s);txt(s,x,ty,p[0],{"text-anchor":"middle"})});
+  txt(s,X(0),H-4,"0");txt(s,X(MAXK),H-4,"500 KAF",{"text-anchor":"end"});
+  txt(s,(X(FLO)+X(FHI))/2,by+bh+20,"fill",{"text-anchor":"middle",fill:C.warn});
+}
+function drawBands(host,marks){
+  host.innerHTML="";var W=Math.max(280,host.clientWidth),H=104,L=4,R=4,lo=Math.log10(5),hi=Math.log10(10000);
+  var s=el("svg",{viewBox:"0 0 "+W+" "+H,width:"100%",role:"img","aria-label":"Boating bands with current gauge readings"},host);
+  var X=function(v){return L+(Math.log10(Math.max(5,v))-lo)/(hi-lo)*(W-L-R)},by=40,bh=18;
+  [[5,800,C.faint,.9],[800,1000,C.warn,.25],[1000,1200,C.water,.3],[1200,3000,C.water,.55],[3000,10000,C.rock,.35]].forEach(function(b){el("rect",{x:X(b[0]),y:by,width:X(b[1])-X(b[0]),height:bh,fill:b[2],"fill-opacity":b[3]},s)});
+  txt(s,(X(5)+X(800))/2,by+13,"too low to float",{"text-anchor":"middle"});
+  [[10,"10"],[100,"100"],[800,"800"],[3000,"3K"],[10000,"10K"]].forEach(function(t){txt(s,X(t[0]),by+bh+14,t[1],{"text-anchor":t[0]===10000?"end":"middle"})});
+  marks.filter(function(m){return m[1]!=null}).sort(function(a,b){return a[1]-b[1]}).forEach(function(m,i){
+    var x=X(m[1]),above=i%2===0;el("line",{x1:x,x2:x,y1:above?by-10:by,y2:above?by+bh:by+bh+22,stroke:C.fg,"stroke-width":2},s);
+    var anchor=x<60?"start":x>W-60?"end":"middle";
+    txt(s,x,above?by-14:by+bh+34,m[0]+" "+fmt(m[1]),{"text-anchor":anchor,class:"lbl"});
+  });
+}
+
+/* ---------- boot ---------- */
+$("aj").addEventListener("input",spillUpdate);
+var DATA=null,t,RANGE="storm";
+var AIN={aFactor:"factor",aLo:"lo",aHi:"hi",aAvg:"avg",aBoat:"boat"};
+function syncInputs(){Object.keys(AIN).forEach(function(id){var k=AIN[id];$(id).value=A[k];$(id).classList.toggle("edited",A[k]!==DEF[k])})}
+function saveA(){try{localStorage.setItem(AKEY,JSON.stringify(A))}catch(e){}}
+Object.keys(AIN).forEach(function(id){$(id).addEventListener("input",function(){
+  var k=AIN[id],v=parseFloat($(id).value),inp=$(id);
+  if(!isFinite(v)||v<+inp.min||v>+inp.max){$("aErr").textContent="Enter a number between "+inp.min+" and "+inp.max+".";return}
+  var lo=k==="lo"?v:A.lo,hi=k==="hi"?v:A.hi;if(lo>hi){$("aErr").textContent="The low threshold must be at or below the high one.";return}
+  $("aErr").textContent="";A[k]=v;inp.classList.toggle("edited",v!==DEF[k]);saveA();draw()})});
+$("aReset").addEventListener("click",function(){A=Object.assign({},DEF);try{localStorage.removeItem(AKEY)}catch(e){}$("aErr").textContent="";syncInputs();draw()});
+syncInputs();
+function setRange(r){RANGE=r;$("rStorm").setAttribute("aria-pressed",r==="storm");$("rSeason").setAttribute("aria-pressed",r!=="storm");$("storTitle").textContent=r==="storm"?"This storm":"Storage since July 1";draw()}
+$("rStorm").addEventListener("click",function(){setRange("storm")});$("rSeason").addEventListener("click",function(){setRange("season")});
+function draw(){if(DATA)render(DATA)}
+window.addEventListener("resize",function(){clearTimeout(t);t=setTimeout(draw,150)});
+loadLive().then(function(d){DATA=d;draw()}).catch(function(){
+  return loadSnapshot().then(function(d){DATA=d;draw()}).catch(function(){$("modeText").textContent="Data unavailable";$("h-hero").textContent="Couldn’t load gauge data. Check your connection and reload."});
+});
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(draw);
+})();
+</script>
+</body>
+</html>
