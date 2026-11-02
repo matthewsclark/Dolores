@@ -473,12 +473,12 @@ function render(D){
   drawTank($("tank"),stor);
 
   var dsum=(D.diversions||[]).reduce(function(a,d){return a+(+d.value||0)},0);
-  var proj=project(M,dol,dsum),pe=proj?proj[proj.length-1]:null;
+  var proj=project(M,dol,dsum,G.lostcanyon),pe=proj?proj[proj.length-1]:null;
   if(pe){$("projLabel").textContent="Projected · "+day(pe[0]);$("projNow").textContent=fmt(Math.round(pe[1]/1000)*1000);
     $("projSub").textContent="≈"+fmt(pe[1]/CAP*100)+"% full · ≈"+fmt(Math.round((CAP-pe[1])/1000)*1000)+" af still to fill";
     $("heroSub").textContent+=" NWS forecast runoff should bring it to about "+fmt(Math.round(pe[1]/1000)*1000)+" af by "+day(pe[0])+".";}
   drawStorage($("storChart"),storDaily,M.latest,proj);
-  if(proj)$("storNote").textContent="Solid: daily average storage, Colorado DWR MCPRESCO. Dashed: projection from the NWS 7-day forecast for Dolores at Dolores, times "+A.factor.toFixed(2)+", less today’s release and canal flows. October’s daily water budget gave 0.97: storage rose 97% of what the gauge passed after outflows; the rest is evaporation and measurement error. The bigger uncertainty is the forecast itself.";
+  if(proj)$("storNote").textContent="Solid: daily average storage, Colorado DWR MCPRESCO. Dashed: projection from NWS forecasts for Dolores at Dolores (times "+A.factor.toFixed(2)+", from October’s water budget) plus Lost Canyon Creek, less today’s release and canal flows. House, Beaver and Dry creeks and rain on the lake aren’t measured; in this storm, ungauged water added about 40% on top of the Dolores gauge at the peak, so near a storm the projection runs low.";
 
   /* spill */
   window.__spill={stor:stor,proj:pe?pe[1]:null,projDay:pe?day(pe[0]):null};spillUpdate();
@@ -505,12 +505,14 @@ function render(D){
   /* spines */
   setSpine($("reachHead"),dc);setSpine($("reachLow"),bc);
 }
-function project(M,dol,divSum){
+function interp(ser,t){if(!ser||!ser.length||t<ser[0][0]||t>ser[ser.length-1][0])return 0;for(var i=1;i<ser.length;i++){if(ser[i][0]>=t){var a=ser[i-1],b=ser[i];return a[1]+(b[1]-a[1])*((t-a[0])/((b[0]-a[0])||1))}}return 0}
+function project(M,dol,divSum,lc){
   if(!M.latest||!dol||!dol.forecast||!dol.forecast.length)return null;
   var t0=Date.parse(M.latest.t),st=M.latest.value,out=[[t0,st]],rel=M.releaseNow?+M.releaseNow.value||0:0;
   var fc=dol.forecast.filter(function(p){return p[0]>t0});if(fc.length<2)return null;
   var prev=[t0,dol.latest&&Math.abs(dol.latest[0]-t0)<6*36e5?dol.latest[1]:fc[0][1]];
-  fc.forEach(function(p){var days=(p[0]-prev[0])/864e5;st+=(A.factor*(p[1]+prev[1])/2-rel-divSum)*1.9835*days;out.push([p[0],Math.round(st)]);prev=p});
+  var lcf=(lc&&lc.forecast)||[];
+  fc.forEach(function(p){var days=(p[0]-prev[0])/864e5,side=(interp(lcf,p[0])+interp(lcf,prev[0]))/2;st+=(A.factor*(p[1]+prev[1])/2+side-rel-divSum)*1.9835*days;out.push([p[0],Math.round(st)]);prev=p});
   return out;
 }
 function snoT(str){return Date.parse(str.replace(" ","T")+":00-08:00")}
