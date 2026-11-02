@@ -407,7 +407,7 @@ function render(D){
 
   /* hero */
   var dc=dol&&dol.latest?dol.latest[1]:null;
-  if(dol&&isFlood(dol.flood)) $("h-hero").textContent="The Dolores is in "+dol.flood+" flood at Dolores: "+fmt(dc)+" cfs and pouring into McPhee.";
+  if(dol&&isFlood(dol.flood)) $("h-hero").textContent="The Dolores is in "+dol.flood+" flood at Dolores: "+fmt(dc)+" cfs.";
   else $("h-hero").textContent="McPhee needs about "+fmt(Math.round(space/1000))+",000 acre-feet before the lower river runs.";
   $("heroSub").textContent="McPhee holds "+fmt(stor)+" acre-feet and is "+fmt(pct,1)+"% full. It needs "+fmt(space)+" more to fill."+(gain>0?" It gained "+fmt(gain)+" since yesterday.":"");
   var chips=$("chips");chips.innerHTML="";
