@@ -253,7 +253,8 @@ svg .lbl{fill:var(--fg)}
         <label for="aFactor"><span>Inflow reaching storage</span><input id="aFactor" type="number" step="0.01" min="0.5" max="1.2" inputmode="decimal"><em>× Dolores gauge flow · October water budget: 0.97</em></label>
         <label for="aX0"><span>Spill starts at</span><input id="aX0" type="number" step="5" min="300" max="700" inputmode="numeric"><em>KAF of April 1 storage + April–July inflow · fit: 486</em></label>
         <label for="aSlope"><span>Share of extra water spilled</span><input id="aSlope" type="number" step="0.01" min="0.5" max="1.1" inputmode="decimal"><em>fit: 0.92</em></label>
-        <label for="aWinter"><span>Winter storage change</span><input id="aWinter" type="number" step="1" min="-60" max="120" inputmode="numeric"><em>KAF, Nov 10 to Apr 1 · median +10 (dry −8, wet +40)</em></label>
+        <label for="aWrel"><span>Winter dam release</span><input id="aWrel" type="number" step="1" min="0" max="300" inputmode="numeric"><em>cfs average, Nov 10 to Apr 1 · last winter: 17</em></label>
+        <label for="aWdiv"><span>Winter canal diversions</span><input id="aWdiv" type="number" step="0.5" min="0" max="40" inputmode="decimal"><em>KAF, Nov 10 to Apr 1 · median of the last 14 winters: 9.5 · last winter: 19</em></label>
         <label for="aAvg"><span>Average April–July inflow</span><input id="aAvg" type="number" step="5" min="100" max="500" inputmode="numeric"><em>KAF · 1991–2020 mean: 255</em></label>
         <label for="aKday"><span>Spill per boatable day</span><input id="aKday" type="number" step="0.1" min="1" max="8" inputmode="decimal"><em>KAF per day above 800 cfs · fit: 3.5</em></label>
       </div>
@@ -319,8 +320,11 @@ var NS="http://www.w3.org/2000/svg", CAP=381000, INACTIVE=152000, ACTIVE=229000;
 var HIST=[[1988,332,194,40,11,380],[1989,354,185,50,16,382],[1990,273,116,0,0,310],[1991,246,235,16,6,369],[1992,309,299,124,44,383],[1993,328,519,354,80,382],[1994,327,239,91,40,383],[1995,310,470,267,83,382],[1996,318,147,0,0,368],[1997,325,461,283,64,383],[1998,360,318,184,65,382],[1999,279,312,92,29,383],[2000,329,203,57,28,372],[2001,227,209,0,0,340],[2002,208,45,0,0,215],[2003,173,204,0,0,249],[2004,189,204,0,0,310],[2005,240,462,161,40,382],[2006,291,169,0,0,347],[2007,310,212,25,3,383],[2008,298,379,151,67,382],[2009,283,255,43,15,383],[2010,251,246,23,7,382],[2011,280,275,47,20,383],[2012,303,120,0,0,347],[2013,188,84,0,0,216],[2014,193,174,0,0,284],[2015,195,227,0,0,339],[2016,264,243,22,7,380],[2017,347,348,182,62,383],[2018,277,47,0,0,277],[2019,168,455,118,35,381],[2020,280,94,0,0,286],[2021,169,85,0,0,191],[2022,177,146,0,0,258],[2023,190,526,225,54,381],[2024,290,114,0,0,314],[2025,214,109,0,0,264],[2026,190,61,0,0,208]];
 var NORM=[270.3,270.3,270.4,270.7,270.8,270.8,270.9,270.9,271.0,271.1,271.3,271.3,271.4,271.4,271.5,271.6,271.6,271.7,271.7,271.6,271.6,271.6,271.6,271.6,271.6,271.7,271.6,271.6,271.6,271.6,271.6,271.6,271.6,271.5,271.5,271.5,271.5,271.5,271.6,271.7,271.7,271.8,271.8,271.8,271.9,272.0,272.1,272.2,272.3,272.3,272.5,272.5,272.7,272.8,273.0,273.2,273.3,273.5,273.8,274.2,274.5,274.7,275.0,275.0,275.1,275.2,275.2,275.3,275.3,275.4,275.6,275.8,276.0,276.3,276.7,277.8,278.6,278.8,279.1,279.4,279.8,280.2,280.5,280.5,280.4,280.4,280.5,280.3,280.4,280.6,280.9,281.8,282.8,283.3,283.6,283.9,284.2,284.9,285.7,286.4,287.4,288.5,289.9,291.0,291.8,293.9,295.0,296.3,297.8,299.6,301.9,304.9,307.9,310.7,312.9,314.4,316.6,319.3,322.1,324.3,326.1,328.0,330.3,332.5,332.6,333.7,334.7,334.2,333.5,332.6,333.5,334.4,335.9,337.0,337.6,338.7,340.1,341.0,342.0,343.3,344.6,345.5,347.1,347.9,349.6,352.6,355.4,356.2,356.4,356.8,359.0,359.9,360.7,361.1,362.0,363.4,364.5,364.2,365.1,366.4,367.3,367.9,368.1,367.7,367.2,367.3,368.3,370.6,372.2,372.3,372.2,372.0,371.6,371.6,371.9,371.3,370.5,369.6,368.6,367.5,366.4,365.4,364.6,363.4,362.2,361.1,359.8,358.4,356.8,355.4,354.0,352.7,351.3,349.9,348.5,347.1,345.8,344.5,343.2,342.0,340.8,339.7,338.7,337.9,337.1,336.3,335.7,334.9,334.6,333.7,332.5,331.2,330.1,328.8,327.6,326.5,325.9,325.2,324.4,323.6,322.7,321.8,320.9,319.6,318.1,317.1,315.8,314.5,313.2,311.8,310.2,308.9,307.4,306.0,304.6,303.2,301.8,300.5,299.1,297.6,296.2,295.0,293.7,292.5,291.7,290.7,289.8,288.6,287.7,286.7,285.6,284.6,283.6,282.6,281.8,281.2,280.5,279.8,279.2,278.4,277.7,277.1,276.4,275.8,275.2,274.4,273.7,273.0,272.2,271.5,270.7,270.1,269.7,269.3,268.8,268.5,268.2,268.0,267.5,267.1,266.8,266.4,266.0,265.5,265.2,265.0,264.9,264.9,265.4,266.2,266.6,266.9,267.2,267.5,267.8,268.0,268.3,268.6,268.9,268.9,268.8,268.7,268.8,268.7,268.5,268.2,268.2,268.2,268.2,268.2,268.2,268.2,268.2,268.2,268.3,268.4,268.3,268.1,268.0,266.6,267.8,267.8,267.8,267.8,267.8,267.7,267.6,267.6,267.5,267.5,267.4,267.5,267.6,267.6,267.7,267.8,267.8,267.9,268.2,268.2,268.4,268.4,268.5,268.6,268.6,268.7,268.8,268.9,269.0,269.1,269.2,269.4,269.6,269.6,269.6,269.7,269.8,269.9,269.9,270.0,270.0,270.2,270.2,270.2,270.3];
 var PEAKS=[["1911-10-05",10000],["1949-06-19",8140],["1941-05-14",8070],["1922-05-04",7340],["1927-06-28",7030],["1957-06-06",6690],["1984-05-25",6450],["2005-05-24",6120],["1983-05-31",6070],["1973-05-20",5750]],PEAKN=114;
-var WINTER_DRY=-18, WINTER_WET=30; /* p10 and p90 of the Nov 10 to Apr 1 change, relative to the median (+10) */
-var DEF={factor:0.97,x0:486,slope:0.92,winter:10,avg:255,kday:3.5},A=Object.assign({},DEF),AKEY="dolores-assumptions-v2";
+/* Winter, Nov 10 to Apr 1 (141 days), from Reclamation's record 1988-2026: inflow p10 / median / p90 in KAF, and evaporation.
+   Storage change = inflow - dam release - canal diversions - evaporation. Releases and diversions are set below, not taken from history,
+   because big winter releases only happen after full years. */
+var WIN_IN=[12.2,27.3,59.7], WIN_EVAP=1.1, WIN_DAYS=141;
+var DEF={factor:0.97,x0:486,slope:0.92,wrel:15,wdiv:9.5,avg:255,kday:3.5},A=Object.assign({},DEF),AKEY="dolores-assumptions-v3";
 try{var sv=JSON.parse(localStorage.getItem(AKEY)||"null");if(sv)Object.keys(DEF).forEach(function(k){if(typeof sv[k]==="number"&&isFinite(sv[k]))A[k]=sv[k]})}catch(e){}
 function $(id){return document.getElementById(id)}
 function el(t,a,p){var e=document.createElementNS(NS,t);for(var k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e}
@@ -713,7 +717,8 @@ function spillUpdate(){
   var bt=SP.baseT||Date.now(),p=mtParts(bt);
   var aprY=p.month>=4?p.year+1:p.year, apr1=Date.UTC(aprY,3,1,7), nov10=Date.UTC(aprY-1,10,10,7);
   var inRunoff=p.month>=4&&p.month<=7, frac=Math.max(0,Math.min(1,(apr1-bt)/(apr1-nov10)));
-  var b0=SP.base/1000, w=A.winter*frac, wD=(A.winter+WINTER_DRY)*frac, wW=(A.winter+WINTER_WET)*frac;
+  var relK=A.wrel*WIN_DAYS*1.9835/1000, outK=relK+A.wdiv+WIN_EVAP;
+  var b0=SP.base/1000, w=(WIN_IN[1]-outK)*frac, wD=(WIN_IN[0]-outK)*frac, wW=(WIN_IN[2]-outK)*frac;
   var s0=b0+w, s0d=b0+wD, s0w=b0+wW;
   var pct=+$("aj").value, aj=A.avg*pct/100;
   var f=function(x){return A.slope*Math.max(0,x-A.x0)};
@@ -731,7 +736,7 @@ function spillUpdate(){
   else if(nd<45){v.textContent="A boating release of about "+nd+" days above 800 cfs.";v.style.color=C.water}
   else{v.textContent="A big release year: about "+nd+" days above 800 cfs.";v.style.color=C.water}
   if(inRunoff){v.textContent="Runoff is underway, so this rough model no longer applies. Watch DWCD’s operating plan instead.";v.style.color=C.muted}
-  $("math").textContent="Rough model from Reclamation’s daily record for 1988–2026, not DWCD’s operating plan. Spill ≈ "+A.slope.toFixed(2)+" × (April 1 storage + April–July inflow − "+fmt(A.x0)+" KAF); that fit misses actual spills by about 11 KAF on average. April 1 storage starts from "+(SP.fromProj?"projected storage after this storm":"today’s storage")+", "+fmt(b0)+" KAF, and adds a median winter ("+sgn(A.winter)+" KAF from Nov 10 to Apr 1); the range runs from a dry winter ("+sgn(A.winter+WINTER_DRY)+") to a wet one ("+sgn(A.winter+WINTER_WET)+"). Spills put about "+A.kday.toFixed(1)+" KAF downriver for each day above 800 cfs. The estimate is tuned for November through March; from August through October, irrigation is still drawing the lake down. Once CBRFC’s April–July forecast is issued in January, that forecast will replace the slider.";
+  $("math").textContent="Rough model from Reclamation’s daily record for 1988–2026, not DWCD’s operating plan. Spill ≈ "+A.slope.toFixed(2)+" × (April 1 storage + April–July inflow − "+fmt(A.x0)+" KAF); that fit misses actual spills by about 11 KAF on average. April 1 storage starts from "+(SP.fromProj?"projected storage after this storm":"today’s storage")+", "+fmt(b0)+" KAF, then adds the winter. From Nov 10 to Apr 1 a typical winter brings "+fmt(WIN_IN[1])+" KAF of inflow; take away "+fmt(relK,1)+" KAF of dam release ("+fmt(A.wrel)+" cfs), "+fmt(A.wdiv,1)+" KAF of canal diversions and about 1 KAF of evaporation, and the lake nets "+sgn(WIN_IN[1]-outK,1)+" KAF. A dry winter ("+fmt(WIN_IN[0])+" KAF of inflow) nets "+sgn(WIN_IN[0]-outK,1)+"; a wet one ("+fmt(WIN_IN[2])+") nets "+sgn(WIN_IN[2]-outK,1)+". Spills put about "+A.kday.toFixed(1)+" KAF downriver for each day above 800 cfs. The estimate is tuned for November through March; from August through October, irrigation is still drawing the lake down. Once CBRFC’s April–July forecast is issued in January, that forecast will replace the slider.";
   drawScatter(s0,s0d,s0w,aj,sp);
 }
 function drawScatter(s0,s0d,s0w,aj,sp){
@@ -781,7 +786,7 @@ function drawBands(host,marks){
 /* ---------- boot ---------- */
 $("aj").addEventListener("input",spillUpdate);
 var DATA=null,t,RANGE="storm";
-var AIN={aFactor:"factor",aX0:"x0",aSlope:"slope",aWinter:"winter",aAvg:"avg",aKday:"kday"};
+var AIN={aFactor:"factor",aX0:"x0",aSlope:"slope",aWrel:"wrel",aWdiv:"wdiv",aAvg:"avg",aKday:"kday"};
 function syncInputs(){Object.keys(AIN).forEach(function(id){var k=AIN[id];$(id).value=A[k];$(id).classList.toggle("edited",A[k]!==DEF[k])})}
 function saveA(){try{localStorage.setItem(AKEY,JSON.stringify(A))}catch(e){}}
 Object.keys(AIN).forEach(function(id){$(id).addEventListener("input",function(){

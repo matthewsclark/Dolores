@@ -33,6 +33,7 @@ Some reference data is fixed in `index.html` because it changes at most once a y
   > spill ≈ 0.92 × max(0, April 1 storage + April–July inflow − 486,000 af)
 
   Its typical miss is about 11,000 af. Each day above 800 cfs takes about 3,500 af of spill. The April–July average used for the slider is the 1991–2020 mean, 255,000 af.
+- **Winter, Nov 10 to Apr 1.** April 1 storage = projected storage after the current forecast + winter inflow − dam release − canal diversions − evaporation. Winter inflow comes from the 1988–2026 record: 12,200 af in a dry winter (10th percentile), 27,300 typical, 59,700 wet (90th). Release (default 15 cfs) and diversions (default 9,500 af, the median of the last 14 winters) are editable on the page. They aren't taken from history because big winter releases, 40–65 cfs, only happen after full years. Last winter, DWR recorded 4,700 af released and 19,300 af diverted, almost all of it through MVIC's Lone Pine Canal in February and March.
 
 ## Caveats
 
