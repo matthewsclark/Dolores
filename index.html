@@ -419,7 +419,7 @@ function render(D){
   if(dol&&isFlood(dol.flood)) $("h-hero").textContent="The Dolores is in "+dol.flood+" flood at Dolores: "+fmt(dc)+" cfs.";
   else if(gain>3000) $("h-hero").textContent="McPhee rose "+fmt(gain)+" acre-feet in a day and is still climbing.";
   else $("h-hero").textContent="McPhee has about "+fmt(Math.round(space/1000))+",000 acre-feet of room to fill.";
-  var sub="McPhee holds "+fmt(stor)+" acre-feet in total storage and is "+fmt(pct,1)+"% full; "+fmt(stor-INACTIVE)+" of that is usable (active) water"+(gain>0&&!( !isFlood(dol&&dol.flood)&&gain>3000)?", up "+fmt(gain)+" since yesterday.":".");
+  var sub="McPhee currently holds "+fmt(stor)+" acre-feet in total storage and is "+fmt(pct,1)+"% full; "+fmt(stor-INACTIVE)+" of that is usable (active) water"+(gain>0&&!( !isFlood(dol&&dol.flood)&&gain>3000)?", up "+fmt(gain)+" since yesterday.":".");
   var pend=proj?proj[proj.length-1]:null;
   if(pend&&pend[1]-stor>1000) sub+=" NOAA’s forecast adds about "+fmt(Math.round((pend[1]-stor)/1000)*1000)+" more as the storm recedes, to roughly "+fmt(Math.round(pend[1]/1000)*1000)+" total by "+day(pend[0])+". That would leave about "+fmt(Math.round((CAP-pend[1])/1000)*1000)+" of room to fill.";
   else sub+=" It has "+fmt(space)+" of room to fill.";
