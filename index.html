@@ -92,6 +92,7 @@ header{padding:24px 0 6px}
 .agrid input{font-family:var(--display);font-size:24px;color:var(--fg);background:rgba(0,0,0,.25);border:1px solid var(--faint);border-radius:8px;padding:6px 10px;width:100%}
 .agrid input:focus-visible{outline:2px solid var(--water);outline-offset:1px}
 .agrid input.edited{border-color:var(--water)}
+.agrid em.conv{color:var(--water);font-size:12px;min-height:16px}
 .reset{font-family:var(--mono);font-size:12px;color:var(--muted);background:none;border:1px solid var(--faint);border-radius:999px;padding:5px 11px;cursor:pointer}
 .reset:focus-visible{outline:2px solid var(--water)}
 .readout{font-family:var(--mono);font-size:12px;color:var(--fg);min-height:18px}
@@ -281,9 +282,9 @@ svg .lbl{fill:var(--fg)}
         <label for="aX0"><span>Spill starts at</span><input id="aX0" type="number" step="5" min="300" max="700" inputmode="numeric"><em>KAF of April 1 storage + April–July inflow · fit: 486</em></label>
         <label for="aSlope"><span>Share of extra water spilled</span><input id="aSlope" type="number" step="0.01" min="0.5" max="1.1" inputmode="decimal"><em>fit: 0.92</em></label>
         <label for="aWrel"><span>Winter dam release</span><input id="aWrel" type="number" step="1" min="0" max="300" inputmode="numeric"><em>cfs average, Nov 10 to Apr 1 · last winter: 17</em></label>
-        <label for="aWdiv"><span>Winter canal diversions</span><input id="aWdiv" type="number" step="0.5" min="0" max="40" inputmode="decimal"><em>KAF, Nov 10 to Apr 1 · median of the last 14 winters: 9.5 · last winter: 19</em></label>
+        <label for="aWdiv"><span>Winter canal diversions</span><input id="aWdiv" type="number" step="0.5" min="0" max="40" inputmode="decimal"><em class="conv" id="cWdiv" aria-live="polite"></em><em>KAF, Nov 10 to Apr 1 · median of the last 14 winters: 9.5 · last winter: 19</em></label>
         <label for="aAvg"><span>Average April–July inflow</span><input id="aAvg" type="number" step="5" min="100" max="500" inputmode="numeric"><em>KAF · 1991–2020 mean: 255</em></label>
-        <label for="aKday"><span>Spill per boatable day</span><input id="aKday" type="number" step="0.1" min="1" max="8" inputmode="decimal"><em>KAF per day above 800 cfs · fit: 3.5</em></label>
+        <label for="aKday"><span>Spill per boatable day</span><input id="aKday" type="number" step="0.1" min="1" max="8" inputmode="decimal"><em class="conv" id="cKday" aria-live="polite"></em><em>KAF per day above 800 cfs · fit: 3.5</em></label>
       </div>
       <div class="mono" id="aErr" style="color:var(--bad);min-height:16px"></div>
     </div>
@@ -824,10 +825,16 @@ function drawBands(host,marks){
 $("aj").addEventListener("input",function(){LADDER_SEL=null;spillUpdate()});
 var DATA=null,t,RANGE="storm";
 var AIN={aFactor:"factor",aX0:"x0",aSlope:"slope",aWrel:"wrel",aWdiv:"wdiv",aAvg:"avg",aKday:"kday"};
-function syncInputs(){Object.keys(AIN).forEach(function(id){var k=AIN[id];$(id).value=A[k];$(id).classList.toggle("edited",A[k]!==DEF[k])})}
+/* live cfs equivalents for the two volume fields: 1 cfs for a day = 1.9835 af */
+function updConv(){
+  var k=parseFloat($("aKday").value),d=parseFloat($("aWdiv").value);
+  $("cKday").textContent=isFinite(k)&&k>0?"≈ "+fmt(k*1000/1.9835)+" cfs average release while spilling":"";
+  $("cWdiv").textContent=isFinite(d)&&d>=0?"≈ "+fmt(d*1000/1.9835/WIN_DAYS)+" cfs average, Nov 10 to Apr 1":"";
+}
+function syncInputs(){Object.keys(AIN).forEach(function(id){var k=AIN[id];$(id).value=A[k];$(id).classList.toggle("edited",A[k]!==DEF[k])});updConv()}
 function saveA(){try{localStorage.setItem(AKEY,JSON.stringify(A))}catch(e){}}
 Object.keys(AIN).forEach(function(id){$(id).addEventListener("input",function(){
-  var k=AIN[id],v=parseFloat($(id).value),inp=$(id);
+  updConv();var k=AIN[id],v=parseFloat($(id).value),inp=$(id);
   if(!isFinite(v)||v<+inp.min||v>+inp.max){$("aErr").textContent="Enter a number between "+inp.min+" and "+inp.max+".";return}
   $("aErr").textContent="";A[k]=v;inp.classList.toggle("edited",v!==DEF[k]);saveA();draw()})});
 $("aReset").addEventListener("click",function(){A=Object.assign({},DEF);try{localStorage.removeItem(AKEY)}catch(e){}$("aErr").textContent="";syncInputs();draw()});
