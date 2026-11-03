@@ -436,7 +436,7 @@ function render(D){
   function lastM(a){if(!a)return null;for(var i=a.length-1;i>=0;i--){if(a[i][1]!=null&&a[i][2]!=null)return a[i]}return null}
   sn.forEach(function(s){var w=lastM(s.WTEQ),p=lastM(s.PREC);if(w&&p){wsum+=w[1];wmed+=w[2];psum+=p[1];pmed+=p[2]}});
   var pPct=pmed?psum/pmed*100:null;
-  $("h-snow").textContent=pPct?"Precipitation since October 1 is running "+fmt(pPct/100,1)+"× normal."+(psum>2.5*wsum?" Most of it already ran off to the river instead of piling up as snow.":""):"Snow season is just starting.";
+  $("h-snow").textContent=pPct?"Precipitation since October 1 is running "+fmt(pPct/100,1)+"× normal."+(psum>2.5*wsum?" Most of it already ran off into the river instead of piling up as snow.":""):"Snow season is just starting.";
   $("snowLede").textContent="Every NRCS snow site in the upper basin, top to bottom. The lowest automated sensor is Scotch Creek at 9,160′. Below that, nothing reports daily.";
   var L=$("snowList");L.innerHTML="";
   function band(label,low){L.appendChild(h("div","bandhead"+(low?" low":""),label))}
