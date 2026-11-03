@@ -96,6 +96,29 @@ header{padding:24px 0 6px}
 .reset:focus-visible{outline:2px solid var(--water)}
 .readout{font-family:var(--mono);font-size:12px;color:var(--fg);min-height:18px}
 .big{font-size:52px}
+.ladder{position:relative;display:grid}
+.lhead,.lrow{display:grid;grid-template-columns:52px minmax(0,1fr) 54px;gap:8px;align-items:center}
+.lhead{height:22px;padding:0 2px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.lticks{position:relative;height:100%}
+.lticks span{position:absolute;top:4px;transform:translateX(-50%);white-space:nowrap}
+.lrow{min-height:32px;width:100%;background:none;border:0;border-top:1px solid var(--faint);color:var(--fg);font:inherit;padding:0 2px;text-align:left;cursor:pointer;border-radius:0}
+.lrow:hover{background:rgba(255,255,255,.03)}
+.lrow:focus-visible{outline:2px solid var(--water);outline-offset:-2px}
+.lrow[aria-pressed="true"]{background:rgba(255,255,255,.06)}
+.lrow.me{background:rgba(99,199,226,.12);border:1px solid rgba(99,199,226,.55);border-radius:8px;min-height:40px;margin:2px 0}
+.lyr{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.lrow.me .lyr{color:var(--water);font-weight:500}
+.lbar{position:relative;height:12px}
+.lbar i{position:absolute;top:0;bottom:0;display:block}
+.lbar .st{background:#2f6f80;border-radius:2px 0 0 2px}
+.lbar .in{background:var(--water);opacity:.8}
+.lbar .ov{background:var(--rock)}
+.lbar .wh{top:-3px;bottom:-3px;background:repeating-linear-gradient(90deg,rgba(236,230,218,.75) 0 2px,transparent 2px 4px);border-radius:1px}
+.lres{font-family:var(--display);font-size:17px;text-align:right;font-variant-numeric:tabular-nums}
+.lres.none{color:var(--muted)}
+.lline{position:absolute;border-left:1.5px dashed var(--warn);pointer-events:none;opacity:.85}
+.lticks .x0{color:var(--warn)}
+.lgap{font-family:var(--mono);font-size:11px;color:var(--muted);text-align:center;padding:6px 0;border-top:1px solid var(--faint)}
 .dwcd{font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;border:1px solid rgba(99,199,226,.45);color:var(--water);border-radius:4px;padding:1px 5px;margin-left:6px;vertical-align:2px}
 .chart svg{display:block;touch-action:pan-y}
 input[type=range]{width:100%;accent-color:var(--water);height:28px}
@@ -233,8 +256,12 @@ svg .lbl{fill:var(--fg)}
       <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap"><span class="num big" id="ajPct">100%</span><span class="mono" id="ajKaf"></span></div>
       <input type="range" id="aj" min="20" max="200" step="5" value="100">
       <div class="readout" id="scReadout"></div>
-      <div class="chart" id="scatter"></div>
-      <div class="legend"><span><span class="sw" style="background:var(--water)"></span>Spring that spilled</span><span><span class="sw" style="background:transparent;border:1px solid var(--muted)"></span>Spring that didn’t</span><span><span class="sw" style="background:rgba(99,199,226,.22)"></span>This year, with a dry-to-wet winter range</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+        <div class="mono">Every spring since 1988, most water at top</div>
+        <div class="seg" role="group" aria-label="Years shown"><button type="button" id="lNear" aria-pressed="true">Nearby years</button><button type="button" id="lAll" aria-pressed="false">All 39</button></div>
+      </div>
+      <div class="ladder" id="ladder"></div>
+      <div class="legend"><span><span class="sw" style="background:#2f6f80"></span>In McPhee on April 1</span><span><span class="sw" style="background:var(--water)"></span>April–July inflow</span><span><span class="sw" style="background:var(--rock)"></span>Past the spill line: about what spills</span><span><span class="sw" style="background:transparent;border-left:2px dashed var(--warn);border-radius:0"></span>Spill line</span><span><span class="sw" style="background:repeating-linear-gradient(90deg,rgba(236,230,218,.75) 0 2px,transparent 2px 4px)"></span>This year, dry-to-wet winter</span><span>Tap a year for details</span></div>
       <div class="verdict" id="verdict">—</div>
       <div class="kv">
         <div class="tile"><span class="mono">McPhee on April 1, est.</span><div><span class="num" style="font-size:30px" id="s0">—</span><span class="unit">KAF</span></div><span class="mono" id="s0sub"></span></div>
@@ -737,37 +764,47 @@ function spillUpdate(){
   else{v.textContent="A big release year: about "+nd+" days above 800 cfs.";v.style.color=C.water}
   if(inRunoff){v.textContent="Runoff is underway, so this rough model no longer applies. Watch DWCD’s operating plan instead.";v.style.color=C.muted}
   $("math").textContent="Rough model from Reclamation’s daily record for 1988–2026, not DWCD’s operating plan. Spill ≈ "+A.slope.toFixed(2)+" × (April 1 storage + April–July inflow − "+fmt(A.x0)+" KAF); that fit misses actual spills by about 11 KAF on average. April 1 storage starts from "+(SP.fromProj?"projected storage after this storm":"today’s storage")+", "+fmt(b0)+" KAF, then adds the winter. From Nov 10 to Apr 1 a typical winter brings "+fmt(WIN_IN[1])+" KAF of inflow; take away "+fmt(relK,1)+" KAF of dam release ("+fmt(A.wrel)+" cfs), "+fmt(A.wdiv,1)+" KAF of canal diversions and about 1 KAF of evaporation, and the lake nets "+sgn(WIN_IN[1]-outK,1)+" KAF. A dry winter ("+fmt(WIN_IN[0])+" KAF of inflow) nets "+sgn(WIN_IN[0]-outK,1)+"; a wet one ("+fmt(WIN_IN[2])+") nets "+sgn(WIN_IN[2]-outK,1)+". Spills put about "+A.kday.toFixed(1)+" KAF downriver for each day above 800 cfs. The estimate is tuned for November through March; from August through October, irrigation is still drawing the lake down. Once CBRFC’s April–July forecast is issued in January, that forecast will replace the slider.";
-  drawScatter(s0,s0d,s0w,aj,sp);
+  if(LADDER_SEL===null||LADDER_SEL==="This yr")$("scReadout").textContent="This year, est.: "+fmt(s0)+"K on April 1 + "+fmt(aj)+"K in spring = "+fmt(s0+aj)+"K → "+(sp<0.5?"no spill.":"about "+fmt(sp)+"K spilled.");
+  drawLadder(s0,s0d,s0w,aj,sp);
 }
-function drawScatter(s0,s0d,s0w,aj,sp){
-  var host=$("scatter");host.innerHTML="";
-  var W=Math.max(300,host.clientWidth),H=Math.round(Math.min(330,Math.max(250,W*0.62))),L=8,R=40,T=20,B=34;
-  var x0=200,x1=900,y0=0,y1=380,Xs=scale(x0,x1,L,W-R),Ys=scale(y0,y1,H-B,T);
-  var s=el("svg",{viewBox:"0 0 "+W+" "+H,width:"100%",role:"img","aria-label":"Every spring since 1988: April 1 storage plus April–July inflow against the volume spilled, with this year's estimate"},host);
-  [100,200,300].forEach(function(v){el("line",{x1:L,x2:W-R,y1:Ys(v),y2:Ys(v),stroke:C.faint},s);txt(s,W-R+6,Ys(v)+4,v+"K")});
-  [300,400,500,600,700,800].forEach(function(v){txt(s,Xs(v),H-B+16,v+"K",{"text-anchor":"middle"})});
-  txt(s,L,T-8,"Spilled downriver, April–July");
-  txt(s,W-R,H-4,"April 1 storage + April–July inflow",{"text-anchor":"end"});
-  el("rect",{x:Xs(s0d+aj),y:T,width:Math.max(2,Xs(s0w+aj)-Xs(s0d+aj)),height:H-B-T,fill:C.water,"fill-opacity":".14"},s);
-  el("path",{d:"M"+Xs(x0)+" "+Ys(0)+" L"+Xs(A.x0)+" "+Ys(0)+" L"+Xs(x1)+" "+Ys(A.slope*(x1-A.x0)),fill:"none",stroke:C.fg,"stroke-opacity":".5","stroke-width":1.5},s);
-  el("line",{x1:Xs(A.x0),x2:Xs(A.x0),y1:Ys(0),y2:T+30,stroke:C.warn,"stroke-dasharray":"3 3","stroke-opacity":".8"},s);
-  txt(s,Xs(A.x0)-4,T+26,"fills ≈"+fmt(A.x0)+"K",{"text-anchor":"end",fill:C.warn});
-  var LBL={1993:1,2023:1,2019:1,2016:1,2026:1};
-  HIST.forEach(function(r){var x=r[1]+r[2],y=r[3],sp1=y>0;
-    el("circle",{cx:Xs(x),cy:Ys(y),r:sp1?4:3.5,fill:sp1?C.water:"none",stroke:sp1?C.water:C.muted,"stroke-width":1.2,"fill-opacity":".85"},s);
-    if(LBL[r[0]])txt(s,Xs(x),Ys(y)-8,"’"+String(r[0]).slice(2)+(r[0]===2026?" (dry)":""),{"text-anchor":y>0?"end":"middle",class:"lbl"});
+var LADDER_ALL=false, LADDER_SEL=null;
+function drawLadder(s0,s0d,s0w,aj,sp){
+  var host=$("ladder");host.innerHTML="";
+  var me={me:true,y:"This yr",S:s0,AJ:aj,X:s0+aj,Xd:s0d+aj,Xw:s0w+aj,sp:sp};
+  var rows=HIST.map(function(r){return {y:r[0],S:r[1],AJ:r[2],X:r[1]+r[2],sp:r[3],d:r[4],mx:r[5]}}).concat([me]);
+  rows.sort(function(a,b){return b.X-a.X});
+  var mi=rows.indexOf(me), lo=0, hi=rows.length;
+  if(!LADDER_ALL){lo=Math.max(0,mi-5);hi=Math.min(rows.length,mi+6)}
+  var maxX=Math.max(880,Math.ceil((Math.max(me.Xw,me.X)+20)/100)*100), pc=function(v){return (v/maxX*100).toFixed(2)+"%"};
+  /* header with tick labels, then the spill line across every row */
+  var head=h("div","lhead");head.appendChild(h("span",null,""));var tk=h("div","lticks");
+  [0,200,800].forEach(function(v){if(v<=maxX){var t=h("span",null,v?v+"K":"0");t.style.left=pc(v);tk.appendChild(t)}});
+  var tx=h("span","x0",fmt(A.x0)+"K");tx.style.left=pc(A.x0);tk.appendChild(tx);
+  head.appendChild(tk);head.appendChild(h("span",null,""));host.appendChild(head);
+  var line=h("div","lline");line.style.left="calc(62px + (100% - 126px) * "+(A.x0/maxX).toFixed(4)+")";
+  if(lo>0)host.appendChild(h("div","lgap",lo+" bigger "+(lo===1?"spring":"springs")+" above"));
+  rows.slice(lo,hi).forEach(function(r){
+    var b=h("button","lrow"+(r.me?" me":""));b.type="button";
+    b.appendChild(h("span","lyr",r.me?"This yr":String(r.y)));
+    var bar=h("div","lbar");
+    var st=h("i","st");st.style.left="0";st.style.width=pc(r.S);bar.appendChild(st);
+    var inn=h("i","in");inn.style.left=pc(r.S);inn.style.width=pc(r.AJ);bar.appendChild(inn);
+    if(r.X>A.x0){var ov=h("i","ov");ov.style.left=pc(A.x0);ov.style.width=pc(r.X-A.x0);bar.appendChild(ov)}
+    if(r.me&&r.Xw-r.Xd>1){var wh=h("i","wh");wh.style.left=pc(r.Xd);wh.style.width=pc(r.Xw-r.Xd);bar.appendChild(wh)}
+    b.appendChild(bar);
+    var res=h("span","lres"+(r.sp>0.5?"":" none"),r.sp>0.5?(r.me?"≈":"")+fmt(r.sp)+"K":"—");b.appendChild(res);
+    var detail=r.me?"This year, est.: "+fmt(r.S)+"K on April 1 + "+fmt(r.AJ)+"K in spring = "+fmt(r.X)+"K → "+(r.sp<0.5?"no spill":"about "+fmt(r.sp)+"K spilled")+". The bracket is a dry-to-wet winter: "+fmt(r.Xd)+"K to "+fmt(r.Xw)+"K."
+      :r.y+": started April with "+r.S+"K, spring brought "+r.AJ+"K, "+r.X+"K in all → "+(r.sp?r.sp+"K spilled, "+r.d+" days above 800 cfs.":"no spill; McPhee peaked at "+r.mx+"K.");
+    b.setAttribute("aria-label",detail);b.setAttribute("aria-pressed",String(LADDER_SEL===r.y));
+    b.addEventListener("click",function(){LADDER_SEL=r.y;$("scReadout").textContent=detail;
+      host.querySelectorAll(".lrow").forEach(function(x){x.setAttribute("aria-pressed","false")});b.setAttribute("aria-pressed","true")});
+    if(LADDER_SEL===r.y)$("scReadout").textContent=detail;
+    host.appendChild(b);
   });
-  var X=s0+aj;
-  el("line",{x1:Xs(X),x2:Xs(X),y1:T,y2:Ys(0),stroke:C.water,"stroke-width":1.5},s);
-  el("circle",{cx:Xs(X),cy:Ys(sp),r:6,fill:"#0d1720",stroke:C.water,"stroke-width":2.5},s);
-  txt(s,Xs(X)+(Xs(X)>W*0.7?-8:8),T+12,"this year",{"text-anchor":Xs(X)>W*0.7?"end":"start",fill:C.water});
-  var base="This year, est.: "+fmt(s0)+"K on April 1 + "+fmt(aj)+"K in spring = "+fmt(X)+"K → "+(sp<0.5?"no spill.":"about "+fmt(sp)+"K spilled.");
-  $("scReadout").textContent=base;
-  scrub(s,W,L,R,x0,x1,function(xv){
-    var best=null;HIST.forEach(function(r){var d=Math.abs(r[1]+r[2]-xv);if(!best||d<best.d)best={d:d,r:r}});
-    if(Math.abs(X-xv)<best.d){$("scReadout").textContent=base;return}
-    var r=best.r;$("scReadout").textContent=r[0]+": started April with "+r[1]+"K, spring brought "+r[2]+"K → "+(r[3]?r[3]+"K spilled, "+r[4]+" days above 800 cfs":"no spill; peaked at "+r[5]+"K")+".";
-  });
+  if(hi<rows.length)host.appendChild(h("div","lgap",(rows.length-hi)+" smaller "+(rows.length-hi===1?"spring":"springs")+" below"));
+  var yr=host.querySelectorAll(".lrow"),f0=yr[0],f1=yr[yr.length-1];
+  line.style.top=f0.offsetTop+"px";line.style.height=(f1.offsetTop+f1.offsetHeight-f0.offsetTop)+"px";
+  host.appendChild(line);
 }
 function drawBands(host,marks){
   host.innerHTML="";var W=Math.max(280,host.clientWidth),H=104,L=4,R=4,lo=Math.log10(5),hi=Math.log10(10000);
@@ -784,7 +821,7 @@ function drawBands(host,marks){
 }
 
 /* ---------- boot ---------- */
-$("aj").addEventListener("input",spillUpdate);
+$("aj").addEventListener("input",function(){LADDER_SEL=null;spillUpdate()});
 var DATA=null,t,RANGE="storm";
 var AIN={aFactor:"factor",aX0:"x0",aSlope:"slope",aWrel:"wrel",aWdiv:"wdiv",aAvg:"avg",aKday:"kday"};
 function syncInputs(){Object.keys(AIN).forEach(function(id){var k=AIN[id];$(id).value=A[k];$(id).classList.toggle("edited",A[k]!==DEF[k])})}
@@ -796,7 +833,9 @@ Object.keys(AIN).forEach(function(id){$(id).addEventListener("input",function(){
 $("aReset").addEventListener("click",function(){A=Object.assign({},DEF);try{localStorage.removeItem(AKEY)}catch(e){}$("aErr").textContent="";syncInputs();draw()});
 syncInputs();
 function setRange(r){RANGE=r;$("rStorm").setAttribute("aria-pressed",r==="storm");$("rSeason").setAttribute("aria-pressed",r!=="storm");$("storTitle").textContent=r==="storm"?"Total storage · this storm":"Total storage · last 4 months";draw()}
-$("rStorm").addEventListener("click",function(){setRange("storm")});$("rSeason").addEventListener("click",function(){setRange("season")});
+$("rStorm").addEventListener("click",function(){setRange("storm")});
+function setLadder(all){LADDER_ALL=all;$("lNear").setAttribute("aria-pressed",String(!all));$("lAll").setAttribute("aria-pressed",String(all));spillUpdate()}
+$("lNear").addEventListener("click",function(){setLadder(false)});$("lAll").addEventListener("click",function(){setLadder(true)});$("rSeason").addEventListener("click",function(){setRange("season")});
 function draw(){if(DATA)render(DATA)}
 window.addEventListener("resize",function(){clearTimeout(t);t=setTimeout(draw,150)});
 loadLive().then(function(d){DATA=d;draw()}).catch(function(){
