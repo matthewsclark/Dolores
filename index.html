@@ -189,25 +189,26 @@ svg .lbl{fill:var(--fg)}
 </section>
 
 <section class="reach" aria-labelledby="h-mcp">
-  <div class="gutter"><div class="spine base"></div><div class="spine pool"></div><div class="node"></div><span class="elev">6,924′ full pool</span></div>
+  <div class="gutter"><div class="spine base"></div><div class="spine pool"></div><div class="node"></div><span class="elev">6,924′ · 381,000 af full</span></div>
   <div class="content">
     <div class="eyebrow">03 · McPhee Reservoir</div>
     <h2 id="h-mcp">—</h2>
+    <div class="legend"><span><span class="sw" style="background:var(--water)"></span>Total storage: all the water in the lake</span><span><span class="sw" style="background:#2f6f80"></span>Inactive pool: the bottom 152,000 af, below the outlets</span><span><span class="sw" style="background:transparent;border:1px solid var(--water)"></span>Usable (active): total minus the inactive pool, up to 229,000 af</span><span>% full: total storage ÷ 381,000 af capacity</span></div>
     <div class="card tankrow">
       <svg id="tank" viewBox="0 0 110 220" width="100%" role="img" aria-label="McPhee storage gauge"></svg>
       <div class="split">
-        <div class="stat"><span class="mono" id="storLabel">Storage</span><div><span class="num" id="storNow">—</span><span class="unit">af</span></div><span class="mono" id="storPct"></span></div>
-        <div class="stat"><span class="mono" style="color:var(--warn)">Space to fill</span><div><span class="num sm" style="color:var(--warn)" id="space">—</span><span class="unit">af</span></div></div>
+        <div class="stat"><span class="mono" id="storLabel">Total storage</span><div><span class="num" id="storNow">—</span><span class="unit">af</span></div><span class="mono" id="storPct"></span></div>
+        <div class="stat"><span class="mono" style="color:var(--warn)">Room to fill</span><div><span class="num sm" style="color:var(--warn)" id="space">—</span><span class="unit">af</span></div></div>
         <div class="stat"><span class="mono" style="color:var(--water)" id="projLabel">Projected</span><div><span class="num sm" style="color:var(--water)" id="projNow">—</span><span class="unit">af</span></div><span class="mono" id="projSub"></span></div>
         <div class="stat"><span class="mono">Gained since yesterday</span><div><span class="num sm" id="gain24">—</span><span class="unit">af</span></div><span class="mono" id="inflowRate"></span></div>
       </div>
     </div>
     <div class="card split">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><div class="eyebrow" id="storTitle">This storm</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><div class="eyebrow" id="storTitle">Total storage · this storm</div>
         <div class="seg" role="group" aria-label="Chart range"><button type="button" id="rStorm" aria-pressed="true">This storm</button><button type="button" id="rSeason" aria-pressed="false">Since July 1</button></div></div>
       <div class="readout" id="storReadout">Touch or hover the chart to read it.</div>
       <div class="chart" id="storChart"></div>
-      <p class="mono" id="storNote">Daily average storage, Colorado DWR station MCPRESCO. The shaded floor is the 152,000 af inactive pool; the top line is full pool.</p>
+      <p class="mono" id="storNote">Total storage, daily average, Colorado DWR station MCPRESCO. The shaded floor is the 152,000 af inactive pool; the top line is full pool, 381,000 af.</p>
     </div>
   </div>
 </section>
@@ -417,16 +418,16 @@ function render(D){
   var dc=dol&&dol.latest?dol.latest[1]:null;
   if(dol&&isFlood(dol.flood)) $("h-hero").textContent="The Dolores is in "+dol.flood+" flood at Dolores: "+fmt(dc)+" cfs.";
   else if(gain>3000) $("h-hero").textContent="McPhee rose "+fmt(gain)+" acre-feet in a day and is still climbing.";
-  else $("h-hero").textContent="McPhee needs about "+fmt(Math.round(space/1000))+",000 acre-feet to fill.";
-  var sub="McPhee holds "+fmt(stor)+" acre-feet and is "+fmt(pct,1)+"% full"+(gain>0&&!( !isFlood(dol&&dol.flood)&&gain>3000)?", up "+fmt(gain)+" since yesterday.":".");
+  else $("h-hero").textContent="McPhee has about "+fmt(Math.round(space/1000))+",000 acre-feet of room to fill.";
+  var sub="McPhee holds "+fmt(stor)+" acre-feet in total storage and is "+fmt(pct,1)+"% full; "+fmt(stor-INACTIVE)+" of that is usable (active) water"+(gain>0&&!( !isFlood(dol&&dol.flood)&&gain>3000)?", up "+fmt(gain)+" since yesterday.":".");
   var pend=proj?proj[proj.length-1]:null;
-  if(pend&&pend[1]-stor>1000) sub+=" NOAA’s forecast adds about "+fmt(Math.round((pend[1]-stor)/1000)*1000)+" more as the storm recedes, to roughly "+fmt(Math.round(pend[1]/1000)*1000)+" by "+day(pend[0])+". That would still leave about "+fmt(Math.round((CAP-pend[1])/1000)*1000)+" to fill.";
-  else sub+=" It needs "+fmt(space)+" more to fill.";
+  if(pend&&pend[1]-stor>1000) sub+=" NOAA’s forecast adds about "+fmt(Math.round((pend[1]-stor)/1000)*1000)+" more as the storm recedes, to roughly "+fmt(Math.round(pend[1]/1000)*1000)+" total by "+day(pend[0])+". That would leave about "+fmt(Math.round((CAP-pend[1])/1000)*1000)+" of room to fill.";
+  else sub+=" It has "+fmt(space)+" of room to fill.";
   $("heroSub").textContent=sub;
   var chips=$("chips");chips.innerHTML="";
   function chip(color,text){var c=h("span","chip");c.setAttribute("role","listitem");var d=h("span","dot");d.style.background=color;c.appendChild(d);c.appendChild(document.createTextNode(text));chips.appendChild(c)}
   if(dol&&dol.latest)chip(isFlood(dol.flood)?C.bad:C.water,"Dolores "+fmt(dc)+" cfs"+(isFlood(dol.flood)?" · "+dol.flood+" flood":""));
-  chip(C.water,"McPhee "+fmt(pct,1)+"%"+(gain>0?" · +"+fmt(gain)+" af/day":""));
+  chip(C.water,"McPhee "+fmt(pct,1)+"% full"+(gain>0?" · +"+fmt(gain)+" af since yesterday":""));
   var lc=G.lostcanyon;if(lc&&isFlood(lc.flood))chip(C.bad,"Lost Canyon Cr. · "+lc.flood+" flood stage");
   if(bed&&bed.latest&&rel!=null)chip(C.rock,"Bedrock "+fmt(bed.latest[1])+" cfs · "+fmt(100*(1-rel/bed.latest[1]),1)+"% not from the dam");
 
@@ -480,18 +481,18 @@ function render(D){
 
   /* McPhee */
   $("h-mcp").textContent=gain>3000?"The storm is filling McPhee by the hour.":"Pulled back from the bottom, a long way from full.";
-  $("storLabel").textContent="Storage · "+when(Date.parse(M.latest.t));
-  $("storNow").textContent=fmt(stor);$("storPct").textContent=fmt(pct,1)+"% of 381,000 af · active ≈ "+fmt(stor-INACTIVE)+" af";
+  $("storLabel").textContent="Total storage · "+when(Date.parse(M.latest.t));
+  $("storNow").textContent=fmt(stor);$("storPct").textContent=fmt(pct,1)+"% full · usable (active) "+fmt(stor-INACTIVE)+" af, "+fmt((stor-INACTIVE)/229000*100)+"% of 229,000";
   $("space").textContent=fmt(space);$("gain24").textContent=gain!=null?(gain>=0?"+":"")+fmt(gain):"—";
   $("inflowRate").textContent=dc?("At "+fmt(dc)+" cfs, the river delivers ≈"+fmt(dc*1.9835)+" af a day"):"";
   drawTank($("tank"),stor);
 
   var pe=proj?proj[proj.length-1]:null;
-  if(pe){$("projLabel").textContent="Projected · "+day(pe[0]);$("projNow").textContent=fmt(Math.round(pe[1]/1000)*1000);
-    $("projSub").textContent="≈"+fmt(pe[1]/CAP*100)+"% full · ≈"+fmt(Math.round((CAP-pe[1])/1000)*1000)+" af still to fill";
+  if(pe){$("projLabel").textContent="Projected total · "+day(pe[0]);$("projNow").textContent=fmt(Math.round(pe[1]/1000)*1000);
+    $("projSub").textContent="≈"+fmt(pe[1]/CAP*100)+"% full · ≈"+fmt(Math.round((CAP-pe[1])/1000)*1000)+" af room to fill";
 }
   drawStorage($("storChart"),storDaily,M.latest,proj);
-  if(proj)$("storNote").textContent="Solid: daily average storage, Colorado DWR MCPRESCO. Dashed: projection from NWS forecasts for Dolores at Dolores (times "+A.factor.toFixed(2)+", from October’s water budget) plus Lost Canyon Creek, less today’s release and canal flows. House, Beaver and Dry creeks and rain on the lake aren’t measured; in this storm, ungauged water added about 40% on top of the Dolores gauge at the peak, so near a storm the projection runs low.";
+  if(proj)$("storNote").textContent="Solid: total storage, daily average, Colorado DWR MCPRESCO. Dashed: projection from NWS forecasts for Dolores at Dolores (times "+A.factor.toFixed(2)+", from October’s water budget) plus Lost Canyon Creek, less today’s release and canal flows. House, Beaver and Dry creeks and rain on the lake aren’t measured; in this storm, ungauged water added about 40% on top of the Dolores gauge at the peak, so near a storm the projection runs low.";
 
   /* spill */
   window.__spill={stor:stor,proj:pe?pe[1]:null,projDay:pe?day(pe[0]):null};spillUpdate();
@@ -609,7 +610,7 @@ function drawStorage(host,daily,latest,proj){
   var x0=pts[0][0],x1=proj?proj[proj.length-1][0]:pts[pts.length-1][0],y0=140000,y1=390000;
   if(storm){var vals=pts.concat(proj||[]).map(function(p){return p[1]});y0=Math.floor((Math.min.apply(null,vals)-6000)/10000)*10000;y1=CAP+22000}
   var X=scale(x0,x1,L,W-R),Y=scale(y0,y1,H-B,T);
-  var s=el("svg",{viewBox:"0 0 "+W+" "+H,width:"100%",role:"img","aria-label":"McPhee storage since July 1 against the inactive pool and full pool"},host);
+  var s=el("svg",{viewBox:"0 0 "+W+" "+H,width:"100%",role:"img","aria-label":"McPhee total storage against the inactive pool and full pool"},host);
   el("line",{x1:L,x2:W-R,y1:Y(CAP),y2:Y(CAP),stroke:C.water,"stroke-dasharray":"3 3"},s);
   txt(s,L+2,Y(CAP)-6,"Full pool · "+fmt(CAP)+" af · 6,924′",{fill:C.water});
   if(!storm){el("rect",{x:L,y:Y(INACTIVE),width:W-R-L,height:Y(y0)-Y(INACTIVE),fill:"#0d1720","fill-opacity":".6"},s);
@@ -632,7 +633,7 @@ function drawStorage(host,daily,latest,proj){
   if(proj&&storm)txt(s,X(e[0]),H-5,"now",{"text-anchor":"middle"});
   txt(s,L,H-5,day(x0));txt(s,W-R,H-5,day(x1),{"text-anchor":"end"});
   var all=proj?pts.concat(proj.slice(1)):pts;
-  scrub(s,W,L,R,x0,x1,function(t){var p=nearest(all,t);$("storReadout").textContent=day(p[0])+" · "+(p[0]>e[0]?"projected ≈":"")+fmt(p[1])+" af · "+fmt(p[1]/CAP*100,1)+"% full"});
+  scrub(s,W,L,R,x0,x1,function(t){var p=nearest(all,t);$("storReadout").textContent=day(p[0])+" · "+(p[0]>e[0]?"projected ≈":"")+fmt(p[1])+" af total · "+fmt(p[1]/CAP*100,1)+"% full · usable "+fmt(Math.max(0,p[1]-INACTIVE))+" af"});
 }
 var PAST=[["’18",46,0],["’26",70,1],["’21",95,0],["’17",420,1]];
 function spillUpdate(){
@@ -648,7 +649,7 @@ function spillUpdate(){
   var afd=A.boat*1.9835/1000;$("days").textContent=hi===0?"0":(Math.round(lo/afd)+"–"+Math.round(hi/afd));
   $("boatLbl").textContent="~"+fmt(A.boat);$("aj").setAttribute("aria-label","April–July inflow as percent of "+AVG+" KAF average");
   $("bandLegend").textContent="Likely fill threshold"+(SP.proj?" after this storm (≈"+SP.projDay+")":" today")+", "+Math.round(FLO)+"–"+Math.round(FHI)+" KAF";
-  $("math").textContent="Rough model, not DWCD’s. Spill ≈ April–July inflow − fill threshold. The threshold started at "+A.lo+"–"+A.hi+" KAF with Oct 30 storage (204,582 af) and drops one-for-one as the reservoir gains water. It now uses the projected storage after the current storm runoff; it assumes normal winter base flow and normal irrigation use, calibrated loosely against 2023 and 2019. "+fmt(A.boat)+" cfs for a day ≈ "+fmt(A.boat*1.9835)+" af. Official CBRFC forecasts replace this slider from January.";
+  $("math").textContent="Rough model, not DWCD’s. Spill ≈ April–July inflow − fill threshold. The threshold started at "+A.lo+"–"+A.hi+" KAF with Oct 30 total storage (204,582 af) and drops one-for-one as the reservoir gains water. It now uses the projected total storage after the current storm runoff; it assumes normal winter base flow and normal irrigation use, calibrated loosely against 2023 and 2019. "+fmt(A.boat)+" cfs for a day ≈ "+fmt(A.boat*1.9835)+" af. Official CBRFC forecasts replace this slider from January.";
   var host=$("budget");host.innerHTML="";var W=Math.max(280,host.clientWidth),H=96,L=6,R=6,MAXK=500;
   var s=el("svg",{viewBox:"0 0 "+W+" "+H,width:"100%",role:"img","aria-label":"Scenario "+k+" KAF against a fill threshold of "+Math.round(FLO)+" to "+Math.round(FHI)+" KAF"},host);
   var X=function(v){return L+v/MAXK*(W-L-R)},by=48,bh=14;
@@ -688,7 +689,7 @@ Object.keys(AIN).forEach(function(id){$(id).addEventListener("input",function(){
   $("aErr").textContent="";A[k]=v;inp.classList.toggle("edited",v!==DEF[k]);saveA();draw()})});
 $("aReset").addEventListener("click",function(){A=Object.assign({},DEF);try{localStorage.removeItem(AKEY)}catch(e){}$("aErr").textContent="";syncInputs();draw()});
 syncInputs();
-function setRange(r){RANGE=r;$("rStorm").setAttribute("aria-pressed",r==="storm");$("rSeason").setAttribute("aria-pressed",r!=="storm");$("storTitle").textContent=r==="storm"?"This storm":"Storage since July 1";draw()}
+function setRange(r){RANGE=r;$("rStorm").setAttribute("aria-pressed",r==="storm");$("rSeason").setAttribute("aria-pressed",r!=="storm");$("storTitle").textContent=r==="storm"?"Total storage · this storm":"Total storage · since July 1";draw()}
 $("rStorm").addEventListener("click",function(){setRange("storm")});$("rSeason").addEventListener("click",function(){setRange("season")});
 function draw(){if(DATA)render(DATA)}
 window.addEventListener("resize",function(){clearTimeout(t);t=setTimeout(draw,150)});
