@@ -323,6 +323,7 @@ function loadLive(){
   var start=new Date(now.getTime()-124*864e5), wy=new Date(now.getMonth()>=9?now.getFullYear():now.getFullYear()-1,9,1);
   var iso=function(d){return d.toISOString().slice(0,10)};
   var usgsP=getJ("https://waterservices.usgs.gov/nwis/iv/?format=json&sites="+sites+"&parameterCd=00060&period=P30D");
+  var lcStageP=getJ("https://waterservices.usgs.gov/nwis/iv/?format=json&sites=09166950&parameterCd=00065&period=P30D").catch(function(){return null});
   var nwpsP=Promise.all(GAUGES.map(function(g){if(!g[3])return null;return Promise.all([getJ("https://api.water.noaa.gov/nwps/v1/gauges/"+g[3]).catch(function(){return null}),getJ("https://api.water.noaa.gov/nwps/v1/gauges/"+g[3]+"/stageflow").catch(function(){return null})])}));
   var storP=getJ(dwr+"/telemetrytimeseriesday/?abbrev=MCPRESCO&parameter=STORAGE&startDate="+mdy(start)+"&format=json");
   var relP=getJ(dwr+"/telemetrytimeseriesday/?abbrev=DOLBMCCO&parameter=DISCHRG&startDate="+mdy(start)+"&format=json");
@@ -330,7 +331,7 @@ function loadLive(){
   var snowP=getJ("https://wcc.sc.egov.usda.gov/awdbRestApi/services/v1/data?stationTriplets="+SNOW.map(function(s){return s[0]}).join(",")+"&elements=WTEQ,SNWD,PREC&duration=DAILY&beginDate="+iso(wy)+"&endDate="+iso(now)+"&centralTendencyType=MEDIAN").catch(function(){return []});
   var hb=new Date(now.getTime()-2*864e5),he=new Date(now.getTime()+864e5);
   var snowHP=getJ("https://wcc.sc.egov.usda.gov/awdbRestApi/services/v1/data?stationTriplets="+SNOW.map(function(s){return s[0]}).join(",")+"&elements=WTEQ,SNWD,PREC&duration=HOURLY&beginDate="+iso(hb)+"&endDate="+iso(he)).catch(function(){return []});
-  return Promise.all([usgsP,nwpsP,storP,relP,divP,snowP,snowHP]).then(function(r){
+  return Promise.all([usgsP,nwpsP,storP,relP,divP,snowP,snowHP,lcStageP]).then(function(r){
     var us={};
     r[0].value.timeSeries.forEach(function(ts){
       var sid=ts.sourceInfo.siteCode[0].value,raw=ts.values[0].value.filter(function(x){return +x.value>-999});
@@ -347,10 +348,13 @@ function loadLive(){
         if(sf){
           var conv=function(arr){return (arr||[]).filter(function(p){return p.secondary>-999}).map(function(p){return [Date.parse(p.validTime),p.secondary*1000]})};
           o.forecast=conv(sf.forecast&&sf.forecast.data);
+          var rm={};((sf.forecast&&sf.forecast.data)||[]).forEach(function(p){if(p.secondary>0&&p.primary>-999)rm[Math.round(p.primary*100)/100]=Math.round(p.secondary*1000)});
+          o.rating=Object.keys(rm).map(function(k){return [+k,rm[k]]}).sort(function(a,b){return a[0]-b[0]});
           var obs=conv(sf.observed&&sf.observed.data);
           if(!o.series.length&&obs.length){o.series=obs.filter(function(p){return new Date(p[0]).getUTCMinutes()===0});if(!o.series.length)o.series=obs;o.latest=obs[obs.length-1];o.seriesSource="NOAA NWPS"}
         }
       }
+      if(g[0]==="lostcanyon"&&r[7]){var ss=[];(r[7].value.timeSeries||[]).forEach(function(ts){ts.values[0].value.forEach(function(x){if(+x.value>-999)ss.push([Date.parse(x.dateTime),+x.value])})});o.stageSeries=ss}
       out.gauges[g[0]]=o;
     });
     out.mcphee.storage=r[2].ResultList.map(function(x){return [x.measDate.slice(0,10),Math.round(x.measValue)]});
@@ -406,6 +410,7 @@ function render(D){
   var gain=prev?stor-prev[1]:null;
   var rel=M.releaseNow?M.releaseNow.value:null;
 
+  estimateLC(G.lostcanyon);
   var dsum=(D.diversions||[]).reduce(function(a,d){return a+(+d.value||0)},0);
   var proj=project(M,dol,dsum,G.lostcanyon);
   /* hero */
@@ -471,7 +476,7 @@ function render(D){
   $("headLede").textContent=(rico.latest&&dc)?("Right now Rico reads "+fmt(rico.latest[1])+" cfs; the other "+fmt(dc-rico.latest[1])+" cfs at Dolores comes from the West Fork and the ungauged middle basin, about 400 square miles of mid-elevation country. That middle number is the low-elevation signal to watch in spring."):"";
   drawHydro($("hydro"),ser,rs,dol.forecast||[]);
   var HT=$("headTiles");HT.innerHTML="";
-  [["rico","8,412′ gauge · high snow"],["westfork","No live flow reported"],["lostcanyon","Low-snow tributary straight into McPhee"],["dolores","Main inflow to McPhee"]].forEach(function(x){tile(HT,G[x[0]],x[1],C.water)});
+  [["rico","8,412′ gauge · high snow"],["westfork","No live flow reported"],["lostcanyon","Enters McPhee below the Dolores gauge"],["dolores","Main inflow to McPhee"]].forEach(function(x){tile(HT,G[x[0]],x[1],C.water)});
 
   /* McPhee */
   $("h-mcp").textContent=gain>3000?"The storm is filling McPhee by the hour.":"Pulled back from the bottom, a long way from full.";
@@ -513,6 +518,12 @@ function render(D){
   /* spines */
   setSpine($("reachHead"),dc);setSpine($("reachLow"),bc);
 }
+function rate(rt,h){if(!rt||rt.length<3||h<rt[0][0])return null;for(var i=1;i<rt.length;i++){if(rt[i][0]>=h){var a=rt[i-1],b=rt[i];return a[1]+(b[1]-a[1])*(h-a[0])/((b[0]-a[0])||1)}}return null}
+function estimateLC(g){if(!g||!g.stageSeries||!g.stageSeries.length||!g.rating)return;
+  var ss=g.stageSeries,last=ss[ss.length-1],top=g.rating[g.rating.length-1];
+  g.estSeries=ss.filter(function(p){return new Date(p[0]).getUTCMinutes()===0}).map(function(p){return [p[0],rate(g.rating,p[1])]}).filter(function(p){return p[1]!=null});
+  g.est={t:last[0],stage:last[1],cfs:rate(g.rating,last[1]),over:last[1]>top[0],top:top};
+  g.peakStage=ss.reduce(function(a,b){return b[1]>a[1]?b:a});}
 function interp(ser,t){if(!ser||!ser.length||t<ser[0][0]||t>ser[ser.length-1][0])return 0;for(var i=1;i<ser.length;i++){if(ser[i][0]>=t){var a=ser[i-1],b=ser[i];return a[1]+(b[1]-a[1])*((t-a[0])/((b[0]-a[0])||1))}}return 0}
 function project(M,dol,divSum,lc){
   if(!M.latest||!dol||!dol.forecast||!dol.forecast.length)return null;
@@ -527,7 +538,15 @@ function snoT(str){return Date.parse(str.replace(" ","T")+":00-08:00")}
 function last(a){if(!a||!a.length)return null;for(var i=a.length-1;i>=0;i--){if(a[i][1]!=null)return a[i]}return a[a.length-1]}
 function setSpine(sec,cfs){if(!sec||cfs==null)return;var lg=Math.log10(Math.max(1,cfs));sec.style.setProperty("--w",Math.max(1,Math.min(9,(lg-0.3)*2.4)).toFixed(1)+"px");sec.style.setProperty("--dur",Math.max(0.35,3.4-lg*0.75).toFixed(2)+"s")}
 function tile(host,g,sub,color){
-  if(!g)return;var t=h("div","tile");var top=h("div","top");top.appendChild(h("span","mono",g.name));var p=pill(g.flood);if(p)top.appendChild(p);t.appendChild(top);
+  if(!g)return;
+  if(g.est){var t0=h("div","tile");var tp=h("div","top");tp.appendChild(h("span","mono",g.name));var pl=pill(g.flood);if(pl)tp.appendChild(pl);t0.appendChild(tp);
+    var nn=h("div");nn.appendChild(h("span","num",(g.est.over?">":"≈")+fmt(g.est.over?g.est.top[1]:Math.round(g.est.cfs/10)*10)));nn.appendChild(h("span","unit","cfs est."));t0.appendChild(nn);
+    var sp0=h("div");t0.appendChild(sp0);
+    t0.appendChild(h("span","mono","Chart: water level, 14 days. Stage "+fmt(g.est.stage,2)+" ft · "+when(g.est.t)+" · USGS "+g.usgs));
+    t0.appendChild(h("span","mono","Flow estimated from stage using NWS’s rating, since USGS isn’t publishing flow. Peak stage "+fmt(g.peakStage[1],2)+" ft, "+when(g.peakStage[0])+(g.peakStage[1]>g.est.top[0]?", above the rating’s range.":".")));
+    t0.appendChild(h("span","mono",sub));host.appendChild(t0);
+    var stH=g.stageSeries.filter(function(p){return new Date(p[0]).getUTCMinutes()===0}).map(function(p){return [p[0],p[1]-3.5]});
+    requestAnimationFrame(function(){spark(sp0,lastN(stH,14),{color:color,h:40})});return}var t=h("div","tile");var top=h("div","top");top.appendChild(h("span","mono",g.name));var p=pill(g.flood);if(p)top.appendChild(p);t.appendChild(top);
   var stale=g.latest&&(Date.now()-g.latest[0]>2*864e5);
   var n=h("div");
   if(g.latest&&!stale){n.appendChild(h("span","num",fmt(g.latest[1])));n.appendChild(h("span","unit","cfs"))}

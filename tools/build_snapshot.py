@@ -35,6 +35,12 @@ for ts in usgs["value"]["timeSeries"]:
     last=ts["values"][0]["value"]
     last=[x for x in last if float(x["value"])>-999]
     useries[sid]=(pts, [int(dt.datetime.fromisoformat(last[-1]["dateTime"]).timestamp()*1000), float(last[-1]["value"])] if last else None)
+lcs=get("https://waterservices.usgs.gov/nwis/iv/?format=json&sites=09166950&parameterCd=00065&period=P30D")
+lc_stage=[]
+for ts in lcs["value"]["timeSeries"]:
+    for x in ts["values"][0]["value"]:
+        v=float(x["value"])
+        if v>-999: lc_stage.append([int(dt.datetime.fromisoformat(x["dateTime"]).timestamp()*1000), v])
 for gid,name,usid,lid,reach in GAUGES:
     g={"name":name,"usgs":usid,"lid":lid,"reach":reach,"series":[],"latest":None,"forecast":[],"flood":None,"stage":None}
     if usid in useries: g["series"],g["latest"]=useries[usid]
@@ -48,10 +54,12 @@ for gid,name,usid,lid,reach in GAUGES:
             obs=[[int(dt.datetime.fromisoformat(p["validTime"].replace("Z","+00:00")).timestamp()*1000), p["secondary"]*1000] for p in (sf.get("observed") or {}).get("data",[]) if p.get("secondary",-999)>-999]
             fc=[[int(dt.datetime.fromisoformat(p["validTime"].replace("Z","+00:00")).timestamp()*1000), p["secondary"]*1000] for p in (sf.get("forecast") or {}).get("data",[]) if p.get("secondary",-999)>-999]
             g["forecast"]=fc
+            g["rating"]=sorted({round(p["primary"],2):round(p["secondary"]*1000) for p in (sf.get("forecast") or {}).get("data",[]) if p.get("secondary",-999)>0 and p.get("primary",-999)>-999}.items())
             if not g["series"] and obs:
                 g["series"]=[p for p in obs if dt.datetime.fromtimestamp(p[0]/1000).minute==0] or obs
                 g["latest"]=obs[-1]; g["seriesSource"]="NOAA NWPS"
         except Exception as e: print("nwps",lid,e,file=sys.stderr)
+    if gid=="lostcanyon": g["stageSeries"]=lc_stage
     out["gauges"][gid]=g
 B="https://dwr.state.co.us/Rest/GET/api/v2/telemetrystations"
 st=get(f"{B}/telemetrytimeseriesday/?abbrev=MCPRESCO&parameter=STORAGE&startDate={start}&format=json")["ResultList"]
