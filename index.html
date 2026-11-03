@@ -9,6 +9,11 @@
 <meta property="og:description" content="Live flows, McPhee storage, snowpack and spill odds, snow to slickrock.">
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#0d1720">
+<meta property="og:image" content="https://matthewsclark.github.io/Dolores/og.png">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta property="og:url" content="https://matthewsclark.github.io/Dolores/">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230d1720'/%3E%3Cpath d='M5 9 L11 15 L17 20 L27 25' fill='none' stroke='%2363c7e2' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;1,8..60,400&display=swap" rel="stylesheet">
@@ -90,16 +95,19 @@ header{padding:24px 0 6px}
 .reset{font-family:var(--mono);font-size:12px;color:var(--muted);background:none;border:1px solid var(--faint);border-radius:999px;padding:5px 11px;cursor:pointer}
 .reset:focus-visible{outline:2px solid var(--water)}
 .readout{font-family:var(--mono);font-size:12px;color:var(--fg);min-height:18px}
+.big{font-size:52px}
+.dwcd{font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;border:1px solid rgba(99,199,226,.45);color:var(--water);border-radius:4px;padding:1px 5px;margin-left:6px;vertical-align:2px}
 .chart svg{display:block;touch-action:pan-y}
 input[type=range]{width:100%;accent-color:var(--water);height:28px}
 input[type=range]:focus-visible{outline:2px solid var(--water);outline-offset:4px;border-radius:6px}
 .verdict{font-family:var(--display);font-size:24px;line-height:1.15;font-weight:500}
-.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.kv{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.kv .tile{padding:10px}.kv .tile .mono{font-size:11px}.kv .num{font-size:26px!important;white-space:nowrap}
 .math{font-family:var(--mono);font-size:12px;color:var(--muted);border-top:1px dashed var(--faint);padding-top:10px;line-height:1.7}
 .legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-family:var(--mono);font-size:11px;color:var(--muted)}
 .sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
 .share{height:14px;border-radius:7px;overflow:hidden;display:flex;background:var(--faint)}
-.snowrow{display:grid;grid-template-columns:1fr 64px 100px;gap:10px;align-items:center;padding:10px 0;border-top:1px solid var(--faint)}
+.snowrow{display:grid;grid-template-columns:minmax(0,1fr) 60px 96px;gap:10px;align-items:center;padding:10px 0;border-top:1px solid var(--faint)}
 .snowrow:first-of-type{border-top:0}
 .snowrow .nm{font-family:var(--display);font-size:19px;font-weight:500;line-height:1.1}
 .snowrow .v{text-align:right;font-family:var(--display);font-size:22px;font-variant-numeric:tabular-nums}
@@ -174,16 +182,17 @@ svg .lbl{fill:var(--fg)}
 </section>
 
 <section class="reach" id="reachHead" aria-labelledby="h-head">
-  <div class="gutter"><div class="spine base"></div><div class="spine"></div><div class="node"></div><span class="elev">6,950′ Dolores gauge</span></div>
+  <div class="gutter"><div class="spine base"></div><div class="spine"></div><div class="node"></div><span class="elev">6,936′ Dolores gauge</span></div>
   <div class="content">
     <div class="eyebrow">02 · Headwaters</div>
     <h2 id="h-head">—</h2>
     <div class="card split">
       <div class="readout" id="hydroReadout">Touch or hover the chart to read it.</div>
       <div class="chart" id="hydro"></div>
-      <div class="legend"><span><span class="sw" style="background:#9fdcec"></span>Below Rico (high country)</span><span><span class="sw" style="background:var(--water)"></span>Everything else above Dolores</span><span><span class="sw" style="background:transparent;border:1px dashed var(--fg)"></span>NWS forecast</span></div>
+      <div class="legend"><span><span class="sw" style="background:#9fdcec"></span>Rico gauge: top 106 mi² of the mainstem</span><span><span class="sw" style="background:var(--water)"></span>Rest of the 504 mi² above Dolores</span><span><span class="sw" style="background:transparent;border:1px dashed var(--fg)"></span>NWS forecast</span></div>
     </div>
     <p class="lede" id="headLede"></p>
+    <p class="lede" id="peakLede"></p>
     <div class="grid2" id="headTiles"></div>
   </div>
 </section>
@@ -197,18 +206,18 @@ svg .lbl{fill:var(--fg)}
     <div class="card tankrow">
       <svg id="tank" viewBox="0 0 110 220" width="100%" role="img" aria-label="McPhee storage gauge"></svg>
       <div class="split">
-        <div class="stat"><span class="mono" id="storLabel">Total storage</span><div><span class="num" id="storNow">—</span><span class="unit">af</span></div><span class="mono" id="storPct"></span></div>
+        <div class="stat"><span class="mono" id="storLabel">Total storage</span><div><span class="num" id="storNow">—</span><span class="unit">af</span></div><span class="mono" id="storPct"></span><span class="mono" id="storUse"></span><span class="mono" id="storElev"></span></div>
         <div class="stat"><span class="mono" style="color:var(--warn)">Room to fill</span><div><span class="num sm" style="color:var(--warn)" id="space">—</span><span class="unit">af</span></div></div>
         <div class="stat"><span class="mono" style="color:var(--water)" id="projLabel">Projected</span><div><span class="num sm" style="color:var(--water)" id="projNow">—</span><span class="unit">af</span></div><span class="mono" id="projSub"></span></div>
-        <div class="stat"><span class="mono">Gained since yesterday</span><div><span class="num sm" id="gain24">—</span><span class="unit">af</span></div><span class="mono" id="inflowRate"></span></div>
+        <div class="stat"><span class="mono" id="gainLbl">Last 24 hours</span><div><span class="num sm" id="gain24">—</span><span class="unit">af</span></div><span class="mono" id="inflowRate"></span></div>
       </div>
     </div>
     <div class="card split">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><div class="eyebrow" id="storTitle">Total storage · this storm</div>
-        <div class="seg" role="group" aria-label="Chart range"><button type="button" id="rStorm" aria-pressed="true">This storm</button><button type="button" id="rSeason" aria-pressed="false">Since July 1</button></div></div>
+        <div class="seg" role="group" aria-label="Chart range"><button type="button" id="rStorm" aria-pressed="true">This storm</button><button type="button" id="rSeason" aria-pressed="false">Last 4 months</button></div></div>
       <div class="readout" id="storReadout">Touch or hover the chart to read it.</div>
       <div class="chart" id="storChart"></div>
-      <p class="mono" id="storNote">Total storage, daily average, Colorado DWR station MCPRESCO. The shaded floor is the 152,000 af inactive pool; the top line is full pool, 381,000 af.</p>
+      <p class="mono" id="storNote">Total storage, daily average, Colorado DWR station MCPRESCO. The shaded floor is the 152,000 af inactive pool; the top line is full pool, 381,000 af. Faint line: median storage for the date, 1991–2020 (Reclamation).</p>
     </div>
   </div>
 </section>
@@ -217,19 +226,21 @@ svg .lbl{fill:var(--fg)}
   <div class="gutter"><div class="spine base"></div><div class="spine pool"></div></div>
   <div class="content">
     <div class="eyebrow">04 · Will it spill?</div>
-    <h2 id="h-spill">Drag the spring runoff and watch the lower river.</h2>
-    <p class="lede">Per DWCD, McPhee has historically spilled about five years in ten. Average annual inflow over the last 30 years is 327,000 acre-feet, nearly all of it snowmelt, and the April–July runoff forecast is the main way the district predicts the year’s supply.</p>
+    <h2 id="h-spill">Two numbers decide it: what’s in McPhee on April 1, and what spring brings.</h2>
+    <p class="lede" id="spillLede">Since 1988, McPhee has spilled in 21 of 39 springs, though only 4 of the last 15. Nearly every one of those springs follows the same rule: once April 1 storage plus April–July inflow passes about 486,000 acre-feet, the lake fills and roughly nine of every ten acre-feet beyond that go down the river.</p>
     <div class="card split">
-      <label for="aj" class="mono">April–July inflow to McPhee, as % of average</label>
-      <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap"><span class="num" style="font-size:52px" id="ajPct">100%</span><span class="mono" id="ajKaf"></span></div>
-      <input type="range" id="aj" min="10" max="180" step="5" value="100">
-      <div id="budget"></div>
+      <label for="aj" class="mono" id="ajLabel">Drag: April–July inflow, % of average</label>
+      <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap"><span class="num big" id="ajPct">100%</span><span class="mono" id="ajKaf"></span></div>
+      <input type="range" id="aj" min="20" max="200" step="5" value="100">
+      <div class="readout" id="scReadout"></div>
+      <div class="chart" id="scatter"></div>
+      <div class="legend"><span><span class="sw" style="background:var(--water)"></span>Spring that spilled</span><span><span class="sw" style="background:transparent;border:1px solid var(--muted)"></span>Spring that didn’t</span><span><span class="sw" style="background:rgba(99,199,226,.22)"></span>This year, with a dry-to-wet winter range</span></div>
       <div class="verdict" id="verdict">—</div>
       <div class="kv">
-        <div class="tile"><span class="mono">Spill volume</span><div><span class="num" style="font-size:30px" id="spill">—</span><span class="unit">KAF</span></div></div>
-        <div class="tile"><span class="mono">Boating days at <span id="boatLbl">~1,200</span> cfs</span><div><span class="num" style="font-size:30px" id="days">—</span></div></div>
+        <div class="tile"><span class="mono">McPhee on April 1, est.</span><div><span class="num" style="font-size:30px" id="s0">—</span><span class="unit">KAF</span></div><span class="mono" id="s0sub"></span></div>
+        <div class="tile"><span class="mono">Spilled downriver</span><div><span class="num" style="font-size:30px" id="spill">—</span><span class="unit">KAF</span></div></div>
+        <div class="tile"><span class="mono">Days above 800 cfs</span><div><span class="num" style="font-size:30px" id="days">—</span></div></div>
       </div>
-      <div class="legend"><span><span class="sw" style="background:rgba(227,176,75,.5)"></span><span id="bandLegend">Likely fill threshold</span></span><span><span class="sw" style="background:var(--water)"></span>Your scenario</span><span><span class="sw" style="background:var(--muted)"></span>Past years, approx.</span></div>
       <div class="math" id="math"></div>
     </div>
     <div class="card split" id="assume">
@@ -237,13 +248,14 @@ svg .lbl{fill:var(--fg)}
         <div class="eyebrow">Your assumptions</div>
         <button type="button" class="reset" id="aReset">Reset to defaults</button>
       </div>
-      <p class="mono">These drive the projection and the spill model. Edits save in this browser only.</p>
+      <p class="mono">These drive the projection and the spill model. Defaults come from Reclamation’s 1984–2026 daily record for McPhee. Edits save in this browser only.</p>
       <div class="agrid">
-        <label for="aFactor"><span>Inflow reaching storage</span><input id="aFactor" type="number" step="0.01" min="0.5" max="1.2" inputmode="decimal"><em>× gauge flow · Oct budget: 0.97</em></label>
-        <label for="aLo"><span>Fill threshold, low</span><input id="aLo" type="number" step="5" min="0" max="600" inputmode="numeric"><em>KAF Apr–Jul, at Oct 30 storage</em></label>
-        <label for="aHi"><span>Fill threshold, high</span><input id="aHi" type="number" step="5" min="0" max="600" inputmode="numeric"><em>KAF Apr–Jul, at Oct 30 storage</em></label>
-        <label for="aAvg"><span>Average Apr–Jul inflow</span><input id="aAvg" type="number" step="5" min="50" max="600" inputmode="numeric"><em>KAF · 30-yr avg cited by DWCD</em></label>
-        <label for="aBoat"><span>Boating release</span><input id="aBoat" type="number" step="50" min="300" max="5000" inputmode="numeric"><em>cfs used to count boating days</em></label>
+        <label for="aFactor"><span>Inflow reaching storage</span><input id="aFactor" type="number" step="0.01" min="0.5" max="1.2" inputmode="decimal"><em>× Dolores gauge flow · October water budget: 0.97</em></label>
+        <label for="aX0"><span>Spill starts at</span><input id="aX0" type="number" step="5" min="300" max="700" inputmode="numeric"><em>KAF of April 1 storage + April–July inflow · fit: 486</em></label>
+        <label for="aSlope"><span>Share of extra water spilled</span><input id="aSlope" type="number" step="0.01" min="0.5" max="1.1" inputmode="decimal"><em>fit: 0.92</em></label>
+        <label for="aWinter"><span>Winter storage change</span><input id="aWinter" type="number" step="1" min="-60" max="120" inputmode="numeric"><em>KAF, Nov 10 to Apr 1 · median +10 (dry −8, wet +40)</em></label>
+        <label for="aAvg"><span>Average April–July inflow</span><input id="aAvg" type="number" step="5" min="100" max="500" inputmode="numeric"><em>KAF · 1991–2020 mean: 255</em></label>
+        <label for="aKday"><span>Spill per boatable day</span><input id="aKday" type="number" step="0.1" min="1" max="8" inputmode="decimal"><em>KAF per day above 800 cfs · fit: 3.5</em></label>
       </div>
       <div class="mono" id="aErr" style="color:var(--bad);min-height:16px"></div>
     </div>
@@ -256,12 +268,12 @@ svg .lbl{fill:var(--fg)}
     <div class="eyebrow" style="color:var(--ag)">05 · Out to the fields</div>
     <h2 id="h-ag">Most of the Dolores leaves through the side door, into the San Juan basin.</h2>
     <div class="grid2" id="agTiles"></div>
-    <p class="lede">The Dolores Project serves about 61,660 irrigated acres: full service around Dove Creek and Towaoc, supplemental water for the Montezuma Valley. A full supply is 22 inches per acre. 2026 was one of the worst seasons on record.</p>
+    <p class="lede">McPhee’s water serves roughly 63,000 irrigated acres: full service around Dove Creek and on Ute Mountain Ute land near Towaoc, and supplemental water for Montezuma Valley Irrigation Company farms. Full-service farms get 22 inches an acre in a full-supply year. In 2026, DWCD called the supply “abysmal.” Canals run from spring to fall; in winter the tiles above read off.</p>
   </div>
 </section>
 
 <section class="reach" id="reachLow" aria-labelledby="h-low" style="--c:var(--rock)">
-  <div class="gutter"><div class="spine base"></div><div class="spine"></div><div class="node"></div><span class="elev">4,943′ Bedrock gauge</span></div>
+  <div class="gutter"><div class="spine base"></div><div class="spine"></div><div class="node"></div><span class="elev">4,911′ Bedrock gauge</span></div>
   <div class="content">
     <div class="eyebrow" style="color:var(--rock)">06 · The lower Dolores</div>
     <h2 id="h-low">—</h2>
@@ -270,10 +282,11 @@ svg .lbl{fill:var(--fg)}
       <div class="share" id="shareBar" role="img"></div>
       <div class="legend" id="shareLegend"></div>
     </div>
+    <p class="lede">Outside of spills, the river below the dam runs on a fish pool, roughly 30,000 acre-feet in a full-supply year and far less in dry ones, released on a schedule set with Colorado Parks and Wildlife. Boatable water needs a spill, or a storm on the tributaries like this one.</p>
     <div class="card">
       <div class="eyebrow" style="margin-bottom:8px">Boating bands · log scale</div>
       <div id="bands"></div>
-      <div class="legend" style="margin-top:6px"><span>800–1K minimal</span><span>1–1.2K good</span><span>1.2–3K prime</span><span>3K+ swift, few eddies</span></div>
+      <div class="legend" style="margin-top:6px"><span>800–1K minimal</span><span>1–1.2K good</span><span>1.2–3K prime</span><span>3K+ swift, few eddies</span><span>Bands: Reclamation’s boating criteria, via American Whitewater</span></div>
     </div>
     <div class="grid2" id="lowTiles"></div>
   </div>
@@ -285,29 +298,43 @@ svg .lbl{fill:var(--fg)}
   <h3>Where the numbers come from</h3>
   <p class="lede" id="srcNote"></p>
   <ul>
-    <li><a href="https://waterdata.usgs.gov/monitoring-location/USGS-09166500/">USGS</a> instantaneous flow · 09165000 Rico · 09166500 Dolores · 09166950 Lost Canyon · 09168730 Slick Rock · 09171100 Bedrock · 09179450 Gateway · 09180000 Cisco</li>
-    <li><a href="https://water.noaa.gov/gauges/dolc2">NOAA National Water Prediction Service</a> · flood categories, stage, and 7-day forecasts</li>
-    <li><a href="https://dwr.state.co.us/Tools/Stations">Colorado DWR</a> · MCPRESCO storage · DOLBMCCO release · Dolores Tunnel, Dove Creek, Lone Pine, U Lateral and Towaoc canals</li>
+    <li><a href="https://waterdata.usgs.gov/monitoring-location/USGS-09166500/">USGS</a> flows and water levels · 09165000 Rico · 09166500 Dolores · 09166950 Lost Canyon · 09168730 Slick Rock · 09171100 Bedrock · 09179450 Gateway · 09180000 Cisco · plus the <a href="https://nwis.waterdata.usgs.gov/nwis/peak?site_no=09166500&amp;agency_cd=USGS&amp;format=html">annual peak record</a> for Dolores</li>
+    <li><a href="https://water.noaa.gov/gauges/dolc2">NOAA National Water Prediction Service</a> · flood categories, 7-day forecasts, and the Lost Canyon rating used to estimate flow</li>
+    <li><a href="https://dwr.state.co.us/Tools/Stations">Colorado DWR</a> · MCPRESCO storage and elevation · DOLBMCCO release · Dolores Tunnel, Dove Creek, Lone Pine, U Lateral and Towaoc canals</li>
     <li><a href="https://wcc.sc.egov.usda.gov/">NRCS</a> SNOTEL · Black Mesa, Sharkstooth, El Diente Peak, Lizard Head Pass, Lone Cone, Scotch Creek · Groundhog snow course</li>
-    <li>Not yet wired: CBRFC April–July McPhee forecast (from January), DWCD release notes and allocation</li>
+    <li><a href="https://data.usbr.gov/rise/">Reclamation RISE</a> · McPhee daily storage, inflow and release since 1984: normal storage for the date, spill history and the spill fit</li>
+    <li><a href="https://www.doloreswater.com/faq">DWCD</a> · capacity, pools, average inflow, spill frequency · <a href="https://www.americanwhitewater.org/article/32610/">American Whitewater</a> · boating flows</li>
+    <li>Not yet wired: CBRFC’s April–July McPhee forecast (issued January–June) and DWCD release notes</li>
   </ul>
 </footer>
 
 <script>
 (function(){
 "use strict";
-var C={water:"#63c7e2",ice:"#9fdcec",warn:"#e3b04b",muted:"#93a0aa",fg:"#ece6da",rock:"#cf7448",ag:"#d8b24c",snow:"#dbe6ee",bad:"#ef6b5b",faint:"rgba(236,230,218,.12)"};
-var NS="http://www.w3.org/2000/svg", CAP=381000, INACTIVE=152000, OCT30=204582;
-var DEF={factor:0.97,lo:210,hi:280,avg:295,boat:1200},A=Object.assign({},DEF),AKEY="dolores-assumptions-v1";
+var C={water:"#63c7e2",ice:"#9fdcec",warn:"#e3b04b",muted:"#93a0aa",fg:"#ece6da",rock:"#cf7448",ag:"#d8b24c",snow:"#dbe6ee",bad:"#ef6b5b",ok:"#7fc79d",faint:"rgba(236,230,218,.12)"};
+var NS="http://www.w3.org/2000/svg", CAP=381000, INACTIVE=152000, ACTIVE=229000;
+/* Fixed reference data, computed from Reclamation RISE (McPhee daily storage, inflow, release) and the USGS annual peak file.
+   HIST rows: [year, April 1 storage KAF, April–July inflow KAF, April–July release above 150 cfs KAF, days release >= 800 cfs, peak storage KAF].
+   NORM: median total storage by day of year, 1991–2020, KAF. PEAKS: ten largest annual peaks at Dolores, 1896–2025. */
+var HIST=[[1988,332,194,40,11,380],[1989,354,185,50,16,382],[1990,273,116,0,0,310],[1991,246,235,16,6,369],[1992,309,299,124,44,383],[1993,328,519,354,80,382],[1994,327,239,91,40,383],[1995,310,470,267,83,382],[1996,318,147,0,0,368],[1997,325,461,283,64,383],[1998,360,318,184,65,382],[1999,279,312,92,29,383],[2000,329,203,57,28,372],[2001,227,209,0,0,340],[2002,208,45,0,0,215],[2003,173,204,0,0,249],[2004,189,204,0,0,310],[2005,240,462,161,40,382],[2006,291,169,0,0,347],[2007,310,212,25,3,383],[2008,298,379,151,67,382],[2009,283,255,43,15,383],[2010,251,246,23,7,382],[2011,280,275,47,20,383],[2012,303,120,0,0,347],[2013,188,84,0,0,216],[2014,193,174,0,0,284],[2015,195,227,0,0,339],[2016,264,243,22,7,380],[2017,347,348,182,62,383],[2018,277,47,0,0,277],[2019,168,455,118,35,381],[2020,280,94,0,0,286],[2021,169,85,0,0,191],[2022,177,146,0,0,258],[2023,190,526,225,54,381],[2024,290,114,0,0,314],[2025,214,109,0,0,264],[2026,190,61,0,0,208]];
+var NORM=[270.3,270.3,270.4,270.7,270.8,270.8,270.9,270.9,271.0,271.1,271.3,271.3,271.4,271.4,271.5,271.6,271.6,271.7,271.7,271.6,271.6,271.6,271.6,271.6,271.6,271.7,271.6,271.6,271.6,271.6,271.6,271.6,271.6,271.5,271.5,271.5,271.5,271.5,271.6,271.7,271.7,271.8,271.8,271.8,271.9,272.0,272.1,272.2,272.3,272.3,272.5,272.5,272.7,272.8,273.0,273.2,273.3,273.5,273.8,274.2,274.5,274.7,275.0,275.0,275.1,275.2,275.2,275.3,275.3,275.4,275.6,275.8,276.0,276.3,276.7,277.8,278.6,278.8,279.1,279.4,279.8,280.2,280.5,280.5,280.4,280.4,280.5,280.3,280.4,280.6,280.9,281.8,282.8,283.3,283.6,283.9,284.2,284.9,285.7,286.4,287.4,288.5,289.9,291.0,291.8,293.9,295.0,296.3,297.8,299.6,301.9,304.9,307.9,310.7,312.9,314.4,316.6,319.3,322.1,324.3,326.1,328.0,330.3,332.5,332.6,333.7,334.7,334.2,333.5,332.6,333.5,334.4,335.9,337.0,337.6,338.7,340.1,341.0,342.0,343.3,344.6,345.5,347.1,347.9,349.6,352.6,355.4,356.2,356.4,356.8,359.0,359.9,360.7,361.1,362.0,363.4,364.5,364.2,365.1,366.4,367.3,367.9,368.1,367.7,367.2,367.3,368.3,370.6,372.2,372.3,372.2,372.0,371.6,371.6,371.9,371.3,370.5,369.6,368.6,367.5,366.4,365.4,364.6,363.4,362.2,361.1,359.8,358.4,356.8,355.4,354.0,352.7,351.3,349.9,348.5,347.1,345.8,344.5,343.2,342.0,340.8,339.7,338.7,337.9,337.1,336.3,335.7,334.9,334.6,333.7,332.5,331.2,330.1,328.8,327.6,326.5,325.9,325.2,324.4,323.6,322.7,321.8,320.9,319.6,318.1,317.1,315.8,314.5,313.2,311.8,310.2,308.9,307.4,306.0,304.6,303.2,301.8,300.5,299.1,297.6,296.2,295.0,293.7,292.5,291.7,290.7,289.8,288.6,287.7,286.7,285.6,284.6,283.6,282.6,281.8,281.2,280.5,279.8,279.2,278.4,277.7,277.1,276.4,275.8,275.2,274.4,273.7,273.0,272.2,271.5,270.7,270.1,269.7,269.3,268.8,268.5,268.2,268.0,267.5,267.1,266.8,266.4,266.0,265.5,265.2,265.0,264.9,264.9,265.4,266.2,266.6,266.9,267.2,267.5,267.8,268.0,268.3,268.6,268.9,268.9,268.8,268.7,268.8,268.7,268.5,268.2,268.2,268.2,268.2,268.2,268.2,268.2,268.2,268.2,268.3,268.4,268.3,268.1,268.0,266.6,267.8,267.8,267.8,267.8,267.8,267.7,267.6,267.6,267.5,267.5,267.4,267.5,267.6,267.6,267.7,267.8,267.8,267.9,268.2,268.2,268.4,268.4,268.5,268.6,268.6,268.7,268.8,268.9,269.0,269.1,269.2,269.4,269.6,269.6,269.6,269.7,269.8,269.9,269.9,270.0,270.0,270.2,270.2,270.2,270.3];
+var PEAKS=[["1911-10-05",10000],["1949-06-19",8140],["1941-05-14",8070],["1922-05-04",7340],["1927-06-28",7030],["1957-06-06",6690],["1984-05-25",6450],["2005-05-24",6120],["1983-05-31",6070],["1973-05-20",5750]],PEAKN=114;
+var WINTER_DRY=-18, WINTER_WET=30; /* p10 and p90 of the Nov 10 to Apr 1 change, relative to the median (+10) */
+var DEF={factor:0.97,x0:486,slope:0.92,winter:10,avg:255,kday:3.5},A=Object.assign({},DEF),AKEY="dolores-assumptions-v2";
 try{var sv=JSON.parse(localStorage.getItem(AKEY)||"null");if(sv)Object.keys(DEF).forEach(function(k){if(typeof sv[k]==="number"&&isFinite(sv[k]))A[k]=sv[k]})}catch(e){}
 function $(id){return document.getElementById(id)}
 function el(t,a,p){var e=document.createElementNS(NS,t);for(var k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e}
 function txt(p,x,y,s,a){var e=el("text",Object.assign({x:x,y:y},a||{}),p);e.textContent=s;return e}
 function h(tag,cls,text){var e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e}
-function fmt(n,d){return n==null||isNaN(n)?"—":Number(n).toLocaleString("en-US",{maximumFractionDigits:d||0})}
+function fmt(n,d){return n==null||isNaN(n)?"—":Number(n).toLocaleString("en-US",{maximumFractionDigits:d||0}).replace(/^-/,"−")}
+function sgn(n,d){return (n>0?"+":"")+fmt(n,d)}
 var TZ={timeZone:"America/Denver"};
 function when(ms){return new Intl.DateTimeFormat("en-US",Object.assign({month:"short",day:"numeric",hour:"numeric",minute:"2-digit"},TZ)).format(new Date(ms))}
 function day(ms){return new Intl.DateTimeFormat("en-US",Object.assign({month:"short",day:"numeric"},TZ)).format(new Date(ms))}
+function mtParts(ms){var o={};new Intl.DateTimeFormat("en-US",Object.assign({year:"numeric",month:"numeric",day:"numeric"},TZ)).formatToParts(new Date(ms)).forEach(function(p){o[p.type]=+p.value});return o}
+function normFor(ms){var p=mtParts(ms),doy=Math.round((Date.UTC(p.year,p.month-1,p.day)-Date.UTC(p.year,0,1))/864e5);return NORM[Math.min(364,doy)]}
+function peakRank(v){if(v==null||v<=PEAKS[PEAKS.length-1][1])return null;return 1+PEAKS.filter(function(p){return p[1]>v}).length}
+function ord(n){return n+(n%100>=11&&n%100<=13?"th":["th","st","nd","rd"][n%10]||"th")}
 function isFlood(c){return c==="minor"||c==="moderate"||c==="major"}
 function pill(c){if(!c||c==="no_flooding"||c==="not_defined"||c==="obs_not_current")return null;var s=h("span","pill "+c,c==="action"?"near flood":c+" flood");return s}
 
@@ -315,16 +342,22 @@ function pill(c){if(!c||c==="no_flooding"||c==="not_defined"||c==="obs_not_curre
 var GAUGES=[["rico","Dolores below Rico","09165000","DRRC2","upper"],["westfork","West Fork near Stoner","09166000",null,"upper"],["dolores","Dolores at Dolores","09166500","DOLC2","upper"],["lostcanyon","Lost Canyon Creek","09166950","LCCC2","upper"],["belowdam","Below McPhee Dam",null,"DRMC2","lower"],["slickrock","Slick Rock","09168730","SLIC2","lower"],["bedrock","Near Bedrock","09171100","DBDC2","lower"],["sanmiguel","San Miguel at Uravan",null,"SMUC2","lower"],["gateway","Near Gateway","09179450","DGAC2","lower"],["cisco","Near Cisco, UT","09180000","DOLU1","lower"]];
 var SNOW=[["1185:CO:SNTL","Black Mesa",11580],["1060:CO:SNTL","Sharkstooth",10730],["465:CO:SNTL","El Diente Peak",10210],["586:CO:SNTL","Lizard Head Pass",10190],["589:CO:SNTL","Lone Cone",9730],["739:CO:SNTL","Scotch Creek",9160],["08M03:CO:SNOW","Groundhog",8970]];
 var DIV=[["MCPRESCO","McPhee storage"],["DOLBMCCO","Release below dam"],["DOLTUNCO","Dolores Tunnel"],["DOVCANCO","Dove Creek Canal"],["MVIDIVCO","Lone Pine Canal (MVIC)"],["UCANALCO","U Lateral (MVIC)"],["TOWCANCO","Towaoc Canal"]];
-function getJ(u){var c=new AbortController();var t=setTimeout(function(){c.abort()},15000);return fetch(u,{signal:c.signal}).then(function(r){clearTimeout(t);if(!r.ok)throw new Error(r.status);return r.json()})}
+function getJ1(u){var c=new AbortController();var t=setTimeout(function(){c.abort()},15000);return fetch(u,{signal:c.signal}).then(function(r){clearTimeout(t);if(!r.ok)throw new Error(r.status);return r.json()})}
+function getJ(u){return getJ1(u).catch(function(){return new Promise(function(res){setTimeout(res,1200)}).then(function(){return getJ1(u)})})}
 function mdy(d){return (d.getMonth()+1)+"/"+d.getDate()+"/"+d.getFullYear()}
 function loadLive(){
+  if(/claude/.test(location.hostname))return Promise.reject(new Error("viewer blocks outside data"));
   var now=new Date(), out={generated:now.toISOString(),mode:"live",gauges:{},mcphee:{},diversions:[],snow:[]};
   var sites=GAUGES.filter(function(g){return g[2]}).map(function(g){return g[2]}).join(",");
   var dwr="https://dwr.state.co.us/Rest/GET/api/v2/telemetrystations";
   var start=new Date(now.getTime()-124*864e5), wy=new Date(now.getMonth()>=9?now.getFullYear():now.getFullYear()-1,9,1);
   var iso=function(d){return d.toISOString().slice(0,10)};
-  var usgsP=getJ("https://waterservices.usgs.gov/nwis/iv/?format=json&sites="+sites+"&parameterCd=00060&period=P30D");
-  var lcStageP=getJ("https://waterservices.usgs.gov/nwis/iv/?format=json&sites=09166950&parameterCd=00065&period=P30D").catch(function(){return null});
+  var usgsP=getJ("https://waterservices.usgs.gov/nwis/iv/?format=json&sites="+sites+"&parameterCd=00060&period=P15D");
+  var lcStageP=getJ("https://waterservices.usgs.gov/nwis/iv/?format=json&sites=09166950&parameterCd=00065&period=P15D").catch(function(){return null});
+  var d3=mdy(new Date(now.getTime()-3*864e5));
+  var rawP=getJ(dwr+"/telemetrytimeseriesraw/?abbrev=MCPRESCO&parameter=STORAGE&startDate="+d3+"&format=json").catch(function(){return null});
+  var elevP=getJ(dwr+"/telemetrytimeseriesraw/?abbrev=MCPRESCO&parameter=ELEV&startDate="+d3+"&format=json").catch(function(){return null});
+  var snapP=loadSnapshot().catch(function(){return null});
   var nwpsP=Promise.all(GAUGES.map(function(g){if(!g[3])return null;return Promise.all([getJ("https://api.water.noaa.gov/nwps/v1/gauges/"+g[3]).catch(function(){return null}),getJ("https://api.water.noaa.gov/nwps/v1/gauges/"+g[3]+"/stageflow").catch(function(){return null})])}));
   var storP=getJ(dwr+"/telemetrytimeseriesday/?abbrev=MCPRESCO&parameter=STORAGE&startDate="+mdy(start)+"&format=json");
   var relP=getJ(dwr+"/telemetrytimeseriesday/?abbrev=DOLBMCCO&parameter=DISCHRG&startDate="+mdy(start)+"&format=json");
@@ -332,7 +365,7 @@ function loadLive(){
   var snowP=getJ("https://wcc.sc.egov.usda.gov/awdbRestApi/services/v1/data?stationTriplets="+SNOW.map(function(s){return s[0]}).join(",")+"&elements=WTEQ,SNWD,PREC&duration=DAILY&beginDate="+iso(wy)+"&endDate="+iso(now)+"&centralTendencyType=MEDIAN").catch(function(){return []});
   var hb=new Date(now.getTime()-2*864e5),he=new Date(now.getTime()+864e5);
   var snowHP=getJ("https://wcc.sc.egov.usda.gov/awdbRestApi/services/v1/data?stationTriplets="+SNOW.map(function(s){return s[0]}).join(",")+"&elements=WTEQ,SNWD,PREC&duration=HOURLY&beginDate="+iso(hb)+"&endDate="+iso(he)).catch(function(){return []});
-  return Promise.all([usgsP,nwpsP,storP,relP,divP,snowP,snowHP,lcStageP]).then(function(r){
+  return Promise.all([usgsP,nwpsP,storP,relP,divP,snowP,snowHP,lcStageP,rawP,elevP,snapP]).then(function(r){
     var us={};
     r[0].value.timeSeries.forEach(function(ts){
       var sid=ts.sourceInfo.siteCode[0].value,raw=ts.values[0].value.filter(function(x){return +x.value>-999});
@@ -352,6 +385,7 @@ function loadLive(){
           var rm={};((sf.forecast&&sf.forecast.data)||[]).forEach(function(p){if(p.secondary>0&&p.primary>-999)rm[Math.round(p.primary*100)/100]=Math.round(p.secondary*1000)});
           o.rating=Object.keys(rm).map(function(k){return [+k,rm[k]]}).sort(function(a,b){return a[0]-b[0]});
           var obs=conv(sf.observed&&sf.observed.data);
+          var cut=now.getTime()-15*864e5;obs=obs.filter(function(p){return p[0]>=cut});
           if(!o.series.length&&obs.length){o.series=obs.filter(function(p){return new Date(p[0]).getUTCMinutes()===0});if(!o.series.length)o.series=obs;o.latest=obs[obs.length-1];o.seriesSource="NOAA NWPS"}
         }
       }
@@ -360,6 +394,9 @@ function loadLive(){
     });
     out.mcphee.storage=r[2].ResultList.map(function(x){return [x.measDate.slice(0,10),Math.round(x.measValue)]});
     out.mcphee.release=r[3].ResultList.map(function(x){return [x.measDate.slice(0,10),x.measValue]});
+    var rawPts=function(j){return j&&j.ResultList?j.ResultList.filter(function(x){return x.measValue!=null}).map(function(x){return [Date.parse(x.measDateTime),x.measValue]}):[]};
+    out.mcphee.raw=rawPts(r[8]);out.mcphee.elev=rawPts(r[9]);
+    out.extras=(r[10]&&r[10].extras)||{};
     r[4].forEach(function(j,i){if(!j||!j.ResultList||!j.ResultList[0])return;var s=j.ResultList[0];var rec={id:DIV[i][0],name:DIV[i][1],value:s.measValue,unit:s.units,t:s.measDateTime};
       if(i===0)out.mcphee.latest=rec;else if(i===1)out.mcphee.releaseNow=rec;else out.diversions.push(rec)});
     var by={},hby={};(r[5]||[]).forEach(function(s){by[s.stationTriplet]=s});(r[6]||[]).forEach(function(s){hby[s.stationTriplet]=s});
@@ -387,8 +424,9 @@ function spark(host,series,opt){
   var W=Math.max(140,host.clientWidth||160),H=opt.h||44,P=3;
   var s=el("svg",{viewBox:"0 0 "+W+" "+H,width:"100%",height:H,"aria-hidden":"true"},host);
   var all=series.concat(opt.fc||[]);
-  var x0=series[0][0],x1=all[all.length-1][0],ymax=Math.max.apply(null,all.map(function(p){return p[1]}))*1.08||1;
-  var X=scale(x0,x1,P,W-P),Y=scale(0,ymax,H-P,P);
+  var vals=all.map(function(p){return p[1]}),x0=series[0][0],x1=all[all.length-1][0],ymax=Math.max.apply(null,vals)*1.08||1;
+  var ymin=opt.fromMin?Math.min.apply(null,vals)*0.97:0;
+  var X=scale(x0,x1,P,W-P),Y=scale(ymin,ymax,H-P,P);
   el("path",{d:pathOf(series,X,Y)+"L"+X(series[series.length-1][0])+" "+(H-P)+"L"+X(x0)+" "+(H-P)+"Z",fill:opt.color,"fill-opacity":".14"},s);
   el("path",{d:pathOf(series,X,Y),fill:"none",stroke:opt.color,"stroke-width":1.6},s);
   if(opt.fc&&opt.fc.length)el("path",{d:pathOf([series[series.length-1]].concat(opt.fc),X,Y),fill:"none",stroke:C.fg,"stroke-opacity":".55","stroke-dasharray":"3 3"},s);
@@ -401,15 +439,31 @@ function render(D){
   var G=D.gauges, M=D.mcphee, live=D.mode==="live";
   $("modeDot").style.background=live?C.ok||"#7fc79d":C.warn;
   $("modeText").textContent=(live?"Live · ":"Snapshot · ")+when(Date.parse(D.generated))+" MT";
-  $("srcNote").textContent=live?"Pulled just now from public government feeds; USGS and NWS readings are provisional."
-    :"Claude's page viewer blocks outside data, so this copy shows a snapshot pulled from the same public feeds at the time above. Hosted on its own site, the page reads the feeds live. Provisional data.";
+  var inClaude=/claude/.test(location.hostname)||location.protocol==="file:";
+  $("srcNote").textContent=live?"Pulled just now from public government feeds. USGS, NWS and DWR readings are provisional and can be revised."
+    :inClaude?"Claude’s page viewer blocks outside data, so this copy shows a snapshot pulled from the same public feeds at the time above. On its own site, the page reads the feeds live."
+    :"The live feeds didn’t answer, so this shows the most recent saved snapshot, from the time above. Reload to try again.";
 
   var dol=G.dolores, rico=G.rico, bed=G.bedrock;
-  var stor=M.latest?M.latest.value:null, space=CAP-stor, pct=stor/CAP*100;
-  var storDaily=M.storage||[], todayKey=M.latest?M.latest.t.slice(0,10):"";
-  var prev=null;for(var i=storDaily.length-1;i>=0;i--){if(storDaily[i][0]<todayKey){prev=storDaily[i];break}}
-  var gain=prev?stor-prev[1]:null;
+  var raw=M.raw||[], lastRaw=raw.length?raw[raw.length-1]:null;
+  var storT=M.latest?Date.parse(M.latest.t):null, stor=M.latest?M.latest.value:null;
+  if(lastRaw&&(!storT||lastRaw[0]>=storT)){storT=lastRaw[0];stor=lastRaw[1]}
+  var space=CAP-stor, pct=stor/CAP*100;
+  var storDaily=M.storage||[];
+  /* true 24-hour change from hourly storage; falls back to yesterday's daily average */
+  var gain=null,gainExact=false;
+  if(lastRaw){var p24=nearest(raw,lastRaw[0]-864e5);if(p24&&Math.abs(p24[0]-(lastRaw[0]-864e5))<=2*36e5){gain=lastRaw[1]-p24[1];gainExact=true}}
+  if(gain==null){var todayKey=M.latest?M.latest.t.slice(0,10):"";for(var i=storDaily.length-1;i>=0;i--){if(storDaily[i][0]<todayKey){gain=stor-storDaily[i][1];break}}}
+  var EL=M.elev||[], elNow=EL.length?EL[EL.length-1]:null, el24=elNow?nearest(EL,elNow[0]-864e5):null;
+  var normNow=stor?normFor(storT):null, pctNorm=normNow?stor/(normNow*1000)*100:null;
   var rel=M.releaseNow?M.releaseNow.value:null;
+  /* the release tile reads the same DWR gauge as everything else that quotes the release */
+  if(G.belowdam&&M.releaseNow){var rd=(M.release||[]).map(function(x){return [Date.parse(x[0]+"T12:00:00-07:00"),+x[1]]});
+    G.belowdam.series=rd;G.belowdam.latest=[Date.parse(M.releaseNow.t),+M.releaseNow.value];G.belowdam.srcLabel="DWR DOLBMCCO"}
+  /* water-year peak at Dolores: the longer record comes with the snapshot; the live 15 days can only raise it */
+  var wyPk=(D.extras&&D.extras.wyPeak)||null;
+  (dol&&dol.series||[]).concat(dol&&dol.latest?[dol.latest]:[]).forEach(function(p){if(!wyPk||p[1]>wyPk.cfs)wyPk={t:p[0],cfs:p[1]}});
+  var pkRank=wyPk?peakRank(wyPk.cfs):null;
 
   estimateLC(G.lostcanyon);
   var dsum=(D.diversions||[]).reduce(function(a,d){return a+(+d.value||0)},0);
@@ -417,9 +471,9 @@ function render(D){
   /* hero */
   var dc=dol&&dol.latest?dol.latest[1]:null;
   if(dol&&isFlood(dol.flood)) $("h-hero").textContent="The Dolores is in "+dol.flood+" flood at Dolores: "+fmt(dc)+" cfs.";
-  else if(gain>3000) $("h-hero").textContent="McPhee rose "+fmt(gain)+" acre-feet in a day and is still climbing.";
+  else if(gain>3000) $("h-hero").textContent="McPhee rose "+fmt(gain)+" acre-feet in the last 24 hours and is still climbing.";
   else $("h-hero").textContent="McPhee has about "+fmt(Math.round(space/1000))+",000 acre-feet of room to fill.";
-  var sub="McPhee currently holds "+fmt(stor)+" acre-feet in total storage and is "+fmt(pct,1)+"% full; "+fmt(stor-INACTIVE)+" of that is usable (active) water"+(gain>0&&!( !isFlood(dol&&dol.flood)&&gain>3000)?", up "+fmt(gain)+" since yesterday.":".");
+  var sub="McPhee currently holds "+fmt(stor)+" acre-feet in total storage and is "+fmt(pct,1)+"% full; "+fmt(stor-INACTIVE)+" of that is usable (active) water"+(gain>0&&!( !isFlood(dol&&dol.flood)&&gain>3000)?", up "+fmt(gain)+" in the last 24 hours.":".");
   var pend=proj?proj[proj.length-1]:null;
   if(pend&&pend[1]-stor>1000) sub+=" NOAA’s forecast adds about "+fmt(Math.round((pend[1]-stor)/1000)*1000)+" more as the storm recedes, to roughly "+fmt(Math.round(pend[1]/1000)*1000)+" total by "+day(pend[0])+". That would leave about "+fmt(Math.round((CAP-pend[1])/1000)*1000)+" of room to fill.";
   else sub+=" It has "+fmt(space)+" of room to fill.";
@@ -427,9 +481,10 @@ function render(D){
   var chips=$("chips");chips.innerHTML="";
   function chip(color,text){var c=h("span","chip");c.setAttribute("role","listitem");var d=h("span","dot");d.style.background=color;c.appendChild(d);c.appendChild(document.createTextNode(text));chips.appendChild(c)}
   if(dol&&dol.latest)chip(isFlood(dol.flood)?C.bad:C.water,"Dolores "+fmt(dc)+" cfs"+(isFlood(dol.flood)?" · "+dol.flood+" flood":""));
-  chip(C.water,"McPhee "+fmt(pct,1)+"% full"+(gain>0?" · +"+fmt(gain)+" af since yesterday":""));
+  chip(C.water,"McPhee "+fmt(pct,1)+"% full"+(pctNorm?" · "+fmt(pctNorm)+"% of normal for the date":""));
+  if(pkRank&&Date.now()-wyPk.t<30*864e5)chip(C.bad,"Dolores peak "+fmt(wyPk.cfs)+" cfs · "+ord(pkRank)+"-highest since 1896");
   var lc=G.lostcanyon;if(lc&&isFlood(lc.flood))chip(C.bad,"Lost Canyon Cr. · "+lc.flood+" flood stage");
-  if(bed&&bed.latest&&rel!=null)chip(C.rock,"Bedrock "+fmt(bed.latest[1])+" cfs · "+fmt(100*(1-rel/bed.latest[1]),1)+"% not from the dam");
+  if(bed&&bed.latest&&rel!=null&&bed.latest[1]>rel)chip(C.rock,"Bedrock "+fmt(bed.latest[1])+" cfs · "+fmt(100*(1-rel/bed.latest[1]),1)+"% tributary water");
 
   /* snow */
   var sn=D.snow||[], wsum=0,wmed=0,psum=0,pmed=0;
@@ -437,7 +492,7 @@ function render(D){
   sn.forEach(function(s){var w=lastM(s.WTEQ),p=lastM(s.PREC);if(w&&p){wsum+=w[1];wmed+=w[2];psum+=p[1];pmed+=p[2]}});
   var pPct=pmed?psum/pmed*100:null;
   $("h-snow").textContent=pPct?"Precipitation since October 1 is running "+fmt(pPct/100,1)+"× normal."+(psum>2.5*wsum?" Most of it already ran off into the river instead of piling up as snow.":""):"Snow season is just starting.";
-  $("snowLede").textContent="Every NRCS snow site in the upper basin, top to bottom. The lowest automated sensor is Scotch Creek at 9,160′. Below that, nothing reports daily.";
+  $("snowLede").textContent="Every NRCS snow site in the basin above McPhee, plus Lone Cone just over the San Miguel divide. Sites marked “DWCD index” are the four the district averages for its basin index. The lowest automated sensor is Scotch Creek at 9,160′; nothing below it reports daily.";
   var L=$("snowList");L.innerHTML="";
   function band(label,low){L.appendChild(h("div","bandhead"+(low?" low":""),label))}
   var bands=[[10000,"Above 10,000′"],[9000,"9,000–10,000′"],[0,"Below 9,000′"]],bi=-1;
@@ -451,7 +506,7 @@ function render(D){
     if(HR.WTEQ)w=[HR.WTEQ[0],HR.WTEQ[1],w?w[2]:null];
     var tP=HR.PREC?snoT(HR.PREC[0]):p&&p[1]!=null?snoT(p[0]+" 23:00"):null;if(HR.PREC)p=[HR.PREC[0],HR.PREC[1],p?p[2]:null];
     var newest=Math.max(tW||0,tP||0,HR.SNWD?snoT(HR.SNWD[0]):0);
-    var sub=fmt(s.elev)+"′";
+    var sub=fmt(s.elev)+"′"+(/^(465|586|589|739):/.test(s.id)?" · DWCD index":"");
     if(p&&p[1]!=null&&tP&&newest-tP<12*36e5)sub+=" · precip "+fmt(p[1],1)+"″"+(p[2]?" ("+fmt(p[1]/p[2]*100)+"%)":"");
     left.appendChild(h("div","mono",sub));
     if(!s.manual&&newest&&(!tP||newest-tP>=12*36e5)){var wn=h("div","mono",tP?"precip gauge silent since "+when(tP):"precip gauge not reporting");wn.style.color=C.warn;left.appendChild(wn)}
@@ -460,42 +515,50 @@ function render(D){
     var v=h("div","v");
     var dp=HR.SNWD?[HR.SNWD[0],HR.SNWD[1]]:last(s.SNWD);
     if(w&&w[1]!=null){v.textContent=fmt(w[1],1)+"″";
-      [ "water (SWE)", dp&&dp[1]!=null?fmt(dp[1])+"″ deep":"", w[2]==null?"new site":w[2]<1?"median "+fmt(w[2],1)+"″":fmt(w[1]/w[2]*100)+"% of med" ].filter(Boolean).forEach(function(t){var vs=h("div","mono",t);vs.style.textAlign="right";v.appendChild(vs)})}
+      [ "water (SWE)", dp&&dp[1]!=null?fmt(dp[1])+"″ deep":"", w[2]==null?"no 30-yr median":w[2]<1?"median "+fmt(w[2],1)+"″":fmt(w[1]/w[2]*100)+"% of med" ].filter(Boolean).forEach(function(t){var vs=h("div","mono",t);vs.style.textAlign="right";v.appendChild(vs)})}
     else{v.textContent="—";(s.manual?["monthly","Jan–May"]:["no data"]).forEach(function(t){var vs2=h("div","mono",t);vs2.style.textAlign="right";v.appendChild(vs2)})}
     row.appendChild(left);row.appendChild(sp);row.appendChild(v);L.appendChild(row);
     var ser=(s.WTEQ||[]).filter(function(x){return x[1]!=null}).map(function(x){return [Date.parse(x[0]),x[1]]});
     requestAnimationFrame(function(){spark(sp,ser,{color:C.snow,h:30})});
   });
-  var gap=h("div","gap","No automated snow sensor exists below 9,160′ in the Dolores basin. Groundhog is a manual snow course, read about monthly. The nearest low SNOTEL is Cascade #2 (8,990′), over the divide in the Animas basin.");L.appendChild(gap);
+  var gap=h("div","gap","No NRCS sensor reports snow below 9,160′ in the Dolores basin. Groundhog is a manual snow course, read about monthly in winter. The nearest SNOTEL below 9,000′ is Cascade #2 (8,990′), over the divide in the Animas basin.");L.appendChild(gap);
 
   /* headwaters hydrograph */
   var ser=lastN(dol.series,14), rs=lastN(rico.series,14);
   var restS=ser.map(function(p){var r=nearest(rs,p[0]);return [p[0],Math.max(0,p[1]-(r&&Math.abs(r[0]-p[0])<36e5?r[1]:0))]});
   var rpk=Math.max.apply(null,ser.map(function(p){return p[1]}));
   var restNow=restS.length?restS[restS.length-1][1]:null;
-  $("h-head").textContent=dc>2000?"Most of this flood is coming from below the high country.":"The upper river, gauge by gauge.";
-  $("headLede").textContent=(rico.latest&&dc)?("Right now Rico reads "+fmt(rico.latest[1])+" cfs; the other "+fmt(dc-rico.latest[1])+" cfs at Dolores comes from the West Fork and the ungauged middle basin, about 400 square miles of mid-elevation country. That middle number is the low-elevation signal to watch in spring."):"";
-  drawHydro($("hydro"),ser,rs,dol.forecast||[]);
+  var rN=rico&&rico.latest?rico.latest[1]:null, share=(rN!=null&&dc)?(dc-rN)/dc:null;
+  $("h-head").textContent=(dc>1500&&share>0.6)?fmt(share*100)+"% of the flow at Dolores is coming from below the Rico gauge.":"The upper river, gauge by gauge.";
+  var hl=(rN!=null&&dc)?"Right now Rico reads "+fmt(rN)+" cfs. The other "+fmt(dc-rN)+" cfs at Dolores comes from the West Fork, Bear and Stoner creeks and the rest of the 398 square miles between the two gauges. When that share runs high while Rico stays low, the water is coming from rain or lower-elevation snow, as in this storm.":"";
+  var pl="";
+  if(pkRank)pl="This water year’s peak at Dolores, "+fmt(wyPk.cfs)+" cfs on "+day(wyPk.t)+", is the "+ord(pkRank)+"-highest in USGS annual peak records going back to 1896"+(pkRank===2?"; only October 1911, at 10,000 cfs, ran higher":"")+". It’s provisional until USGS reviews it.";
+  $("headLede").textContent=hl;$("peakLede").textContent=pl;
+  drawHydro($("hydro"),ser,rs,dol.forecast||[],(wyPk&&ser.length&&wyPk.t>=ser[0][0])?wyPk:null,pkRank);
   var HT=$("headTiles");HT.innerHTML="";
-  [["rico","8,412′ gauge · high snow"],["westfork","No live flow reported"],["lostcanyon","Enters McPhee below the Dolores gauge"],["dolores","Main inflow to McPhee"]].forEach(function(x){tile(HT,G[x[0]],x[1],C.water)});
+  [["rico","106 mi² at the top of the mainstem · gauge at 8,427′"],["westfork","162 mi² · USGS posts no live flow for this gauge"],["lostcanyon","71 mi² · enters McPhee below the Dolores gauge"],["dolores","504 mi² · main inflow to McPhee"]].forEach(function(x){tile(HT,G[x[0]],x[1],C.water)});
 
   /* McPhee */
-  $("h-mcp").textContent=gain>3000?"The storm is filling McPhee by the hour.":"Pulled back from the bottom, a long way from full.";
-  $("storLabel").textContent="Total storage · "+when(Date.parse(M.latest.t));
-  $("storNow").textContent=fmt(stor);$("storPct").textContent=fmt(pct,1)+"% full · usable (active) "+fmt(stor-INACTIVE)+" af, "+fmt((stor-INACTIVE)/229000*100)+"% of 229,000";
-  $("space").textContent=fmt(space);$("gain24").textContent=gain!=null?(gain>=0?"+":"")+fmt(gain):"—";
+  $("h-mcp").textContent=gain>3000?"The storm is filling McPhee by the hour.":pctNorm<90?"Recovering, but still below normal for the date.":pctNorm>110?"Above normal for the date.":"Close to normal for the date.";
+  $("storLabel").textContent="Total storage · "+when(storT);
+  $("storNow").textContent=fmt(stor);
+  $("storPct").textContent=fmt(pct,1)+"% full"+(pctNorm?" · "+fmt(pctNorm)+"% of normal for "+day(storT):"");
+  $("storUse").textContent="Usable (active) "+fmt(Math.max(0,stor-INACTIVE))+" af, "+fmt(Math.max(0,stor-INACTIVE)/ACTIVE*100)+"% of 229,000";
+  $("storElev").textContent=elNow?"Elevation "+elNow[1].toLocaleString("en-US",{minimumFractionDigits:1,maximumFractionDigits:1})+" ft · "+(6924-elNow[1]).toFixed(1)+" ft below full"+(el24&&Math.abs(el24[0]-(elNow[0]-864e5))<=2*36e5?" · "+sgn(elNow[1]-el24[1],1)+" ft in 24 h":""):"";
+  $("gainLbl").textContent=gainExact?"Last 24 hours":"Since yesterday’s average";
+  $("space").textContent=fmt(space);$("gain24").textContent=gain!=null?sgn(gain):"—";
   $("inflowRate").textContent=dc?("At "+fmt(dc)+" cfs, the river delivers ≈"+fmt(dc*1.9835)+" af a day"):"";
-  drawTank($("tank"),stor);
+  drawTank($("tank"),stor,normNow?normNow*1000:null);
 
   var pe=proj?proj[proj.length-1]:null;
   if(pe){$("projLabel").textContent="Projected total · "+day(pe[0]);$("projNow").textContent=fmt(Math.round(pe[1]/1000)*1000);
     $("projSub").textContent="≈"+fmt(pe[1]/CAP*100)+"% full · ≈"+fmt(Math.round((CAP-pe[1])/1000)*1000)+" af room to fill";
 }
-  drawStorage($("storChart"),storDaily,M.latest,proj);
-  if(proj)$("storNote").textContent="Solid: total storage, daily average, Colorado DWR MCPRESCO. Dashed: projection from NWS forecasts for Dolores at Dolores (times "+A.factor.toFixed(2)+", from October’s water budget) plus Lost Canyon Creek, less today’s release and canal flows. House, Beaver and Dry creeks and rain on the lake aren’t measured; in this storm, ungauged water added about 40% on top of the Dolores gauge at the peak, so near a storm the projection runs low.";
+  drawStorage($("storChart"),storDaily,{t:new Date(storT).toISOString(),value:stor},proj);
+  if(proj)$("storNote").textContent="Solid: total storage, daily average, Colorado DWR MCPRESCO. Dashed: projection from NWS forecasts for Dolores at Dolores (times "+A.factor.toFixed(2)+", from October’s water budget) plus Lost Canyon Creek, less today’s release and canal flows. House, Beaver and Dry creeks and rain on the lake aren’t measured; during the Nov 1–2 storm, ungauged water added roughly 40% on top of the Dolores gauge, so near a storm the projection runs low. Faint line: median storage for the date, 1991–2020 (Reclamation).";
 
   /* spill */
-  window.__spill={stor:stor,proj:pe?pe[1]:null,projDay:pe?day(pe[0]):null};spillUpdate();
+  window.__spill={base:pe?pe[1]:stor,baseT:pe?pe[0]:storT,fromProj:!!pe};spillUpdate();
 
   /* irrigation */
   var AT=$("agTiles");AT.innerHTML="";var divSum=0;
@@ -506,7 +569,8 @@ function render(D){
 
   /* lower river */
   var bc=bed&&bed.latest?bed.latest[1]:null;
-  $("h-low").textContent=(rel!=null&&bc>800)?"The dam is releasing a trickle. The canyon is running on storm water.":"Below the dam, the river runs on what McPhee lets go.";
+  var dshare=(rel!=null&&bc)?rel/bc:null;
+  $("h-low").textContent=rel>=800?"McPhee is releasing "+fmt(rel)+" cfs: boating water below the dam.":(bc>800&&dshare<0.2)?"The dam is releasing a trickle. The canyon is running on tributary water.":"Below the dam, the river runs on what McPhee lets go.";
   if(bc!=null&&rel!=null){var dp=Math.min(100,rel/bc*100);
     $("shareLabel").textContent="At Bedrock · "+fmt(bc)+" cfs";
     var sb=$("shareBar");sb.innerHTML="";var a=h("span");a.style.cssText="width:"+Math.max(dp,0.6)+"%;background:"+C.water;var b2=h("span");b2.style.cssText="width:"+(100-dp)+"%;background:"+C.rock;sb.appendChild(a);sb.appendChild(b2);
@@ -546,29 +610,30 @@ function tile(host,g,sub,color){
     t0.appendChild(h("span","mono","Chart: water level, 14 days. Stage "+fmt(g.est.stage,2)+" ft · "+when(g.est.t)+" · USGS "+g.usgs));
     t0.appendChild(h("span","mono","Flow estimated from stage using NWS’s rating, since USGS isn’t publishing flow. Peak stage "+fmt(g.peakStage[1],2)+" ft, "+when(g.peakStage[0])+(g.peakStage[1]>g.est.top[0]?", above the rating’s range.":".")));
     t0.appendChild(h("span","mono",sub));host.appendChild(t0);
-    var stH=g.stageSeries.filter(function(p){return new Date(p[0]).getUTCMinutes()===0}).map(function(p){return [p[0],p[1]-3.5]});
-    requestAnimationFrame(function(){spark(sp0,lastN(stH,14),{color:color,h:40})});return}var t=h("div","tile");var top=h("div","top");top.appendChild(h("span","mono",g.name));var p=pill(g.flood);if(p)top.appendChild(p);t.appendChild(top);
+    var stH=g.stageSeries.filter(function(p){return new Date(p[0]).getUTCMinutes()===0});
+    requestAnimationFrame(function(){spark(sp0,lastN(stH,14),{color:color,h:40,fromMin:true})});return}var t=h("div","tile");var top=h("div","top");top.appendChild(h("span","mono",g.name));var p=pill(g.flood);if(p)top.appendChild(p);t.appendChild(top);
   var stale=g.latest&&(Date.now()-g.latest[0]>2*864e5);
   var n=h("div");
-  if(g.latest&&!stale){n.appendChild(h("span","num",fmt(g.latest[1])));n.appendChild(h("span","unit","cfs"))}
+  if(g.latest&&!stale){n.appendChild(h("span","num",fmt(g.latest[1],g.latest[1]<20?1:0)));n.appendChild(h("span","unit","cfs"))}
   else if(g.stage!=null&&g.stage>-999){n.appendChild(h("span","num",fmt(g.stage,1)));n.appendChild(h("span","unit","ft stage"))}
   else{var d=h("span","num","—");d.style.color=C.muted;n.appendChild(d)}
   t.appendChild(n);
   var sp=h("div");t.appendChild(sp);
-  var meta=(g.usgs?"USGS "+g.usgs:"NWS "+g.lid)+(g.latest?" · "+when(g.latest[0]):"");
+  var srcL=g.srcLabel||(g.usgs?"USGS "+g.usgs:"NWS "+g.lid);
+  var meta=srcL+(g.latest?" · "+when(g.latest[0]):"");
   if(stale)meta=(g.usgs?"USGS "+g.usgs:"")+" · flow stale since "+day(g.latest[0]);
   if(!g.latest&&!g.series.length)meta=(g.usgs?"USGS "+g.usgs+" · ":"")+"no live flow";
-  var mEl=h("span","mono",meta);if(g.latest&&!stale&&Date.now()-g.latest[0]>4*36e5){mEl.textContent="Last reading "+when(g.latest[0])+" · "+(g.usgs?"USGS "+g.usgs:"NWS "+g.lid);mEl.style.color=C.warn}
+  var mEl=h("span","mono",meta);if(g.latest&&!stale&&Date.now()-g.latest[0]>4*36e5){mEl.textContent="Last reading "+when(g.latest[0])+" · "+srcL;mEl.style.color=C.warn}
   t.appendChild(mEl);t.appendChild(h("span","mono",sub));
   host.appendChild(t);
   if(!stale)requestAnimationFrame(function(){spark(sp,lastN(g.series,14),{color:color,fc:(g.forecast||[]).filter(function(p){return !g.latest||p[0]>g.latest[0]}),h:40})});
 }
-function drawHydro(host,dol,rico,fc){
+function drawHydro(host,dol,rico,fc,wp,rank){
   host.innerHTML="";if(dol.length<2)return;
   var W=Math.max(300,host.clientWidth),H=Math.round(Math.min(300,Math.max(200,W*0.5))),L=6,R=46,T=18,B=24;
   var nowT=dol[dol.length-1][0];fc=fc.filter(function(p){return p[0]>nowT});
   var x0=dol[0][0],x1=fc.length?fc[fc.length-1][0]:nowT;
-  var ymax=Math.max.apply(null,dol.concat(fc).map(function(p){return p[1]}))*1.08;
+  var ymax=Math.max.apply(null,dol.concat(fc).concat(wp?[[wp.t,wp.cfs]]:[]).map(function(p){return p[1]}))*1.08;
   var X=scale(x0,x1,L,W-R),Y=scale(0,ymax,H-B,T);
   var s=el("svg",{viewBox:"0 0 "+W+" "+H,width:"100%",role:"img","aria-label":"Dolores at Dolores flow, last 14 days with NWS forecast; split between the Rico gauge and the rest of the upper basin"},host);
   var step=ymax>6000?2000:ymax>2500?1000:ymax>1000?500:200;
@@ -580,9 +645,11 @@ function drawHydro(host,dol,rico,fc){
   el("path",{d:pathOf(rb,X,Y)+"L"+X(rb[rb.length-1][0])+" "+Y(0)+"L"+X(rb[0][0])+" "+Y(0)+"Z",fill:C.ice,"fill-opacity":".55"},s);
   el("path",{d:pathOf(top,X,Y),fill:"none",stroke:C.water,"stroke-width":2},s);
   if(fc.length)el("path",{d:pathOf([dol[dol.length-1]].concat(fc),X,Y),fill:"none",stroke:C.fg,"stroke-opacity":".7","stroke-dasharray":"4 4","stroke-width":1.5},s);
-  var pk=dol.reduce(function(a,b){return b[1]>a[1]?b:a});
+  var pk=dol.reduce(function(a,b){return b[1]>a[1]?b:a});if(wp&&wp.cfs>=pk[1])pk=[wp.t,wp.cfs];
   el("circle",{cx:X(pk[0]),cy:Y(pk[1]),r:4,fill:C.water},s);
-  txt(s,X(pk[0])-7,Y(pk[1])-2,"peak "+fmt(pk[1]),{"text-anchor":"end",class:"lbl"});
+  var lines=["peak "+fmt(pk[1])].concat(rank?[ord(rank)+" since 1896"]:[]),pw=Math.max.apply(null,lines.map(function(l){return l.length}))*6.7;
+  var pleft=X(pk[0])-8-pw>=L;
+  lines.forEach(function(l,i){txt(s,pleft?X(pk[0])-8:X(pk[0])+8,Y(pk[1])+4+i*14,l,{"text-anchor":pleft?"end":"start",class:i?"":"lbl"})});
   txt(s,X(nowT)+5,H-B-6,"forecast",{fill:C.fg});
   txt(s,L,H-6,day(x0));txt(s,X(nowT),H-6,"now",{"text-anchor":"middle"});if(fc.length)txt(s,W-R,H-6,day(x1),{"text-anchor":"end"});
   scrub(s,W,L,R,x0,x1,function(t){
@@ -590,7 +657,7 @@ function drawHydro(host,dol,rico,fc){
     var d=nearest(dol,t),r=nearest(rico,t);$("hydroReadout").textContent=when(d[0])+" · Dolores "+fmt(d[1])+" cfs · Rico "+fmt(r?r[1]:null)+" · rest "+fmt(d[1]-(r?r[1]:0));
   });
 }
-function drawTank(svg,stor){
+function drawTank(svg,stor,norm){
   svg.innerHTML="";var top=10,H=200,fy=function(v){return top+H*(1-v/CAP)};
   el("rect",{x:24,y:top,width:62,height:H,rx:4,fill:"none",stroke:C.fg,"stroke-opacity":".35"},svg);
   el("rect",{x:25,y:fy(stor),width:60,height:fy(0)-fy(stor)-0.5,fill:C.water,"fill-opacity":".85"},svg);
@@ -599,6 +666,7 @@ function drawTank(svg,stor){
   el("line",{x1:18,y1:fy(INACTIVE),x2:92,y2:fy(INACTIVE),stroke:C.fg,"stroke-opacity":".5"},svg);
   el("path",{d:"M94 "+(top+1)+" L100 "+(top+1)+" L100 "+(fy(stor)-1)+" L94 "+(fy(stor)-1),fill:"none",stroke:C.warn},svg);
   txt(svg,55,(fy(INACTIVE)+fy(0))/2+4,"inactive",{"text-anchor":"middle",fill:C.fg,"fill-opacity":".8"});
+  if(norm){el("line",{x1:20,x2:90,y1:fy(norm),y2:fy(norm),stroke:C.fg,"stroke-opacity":".75","stroke-dasharray":"2 2"},svg);txt(svg,22,fy(norm)-4,"normal",{fill:C.fg,"fill-opacity":".85"})}
 }
 function drawStorage(host,daily,latest,proj){
   host.innerHTML="";if(!daily.length)return;
@@ -618,6 +686,9 @@ function drawStorage(host,daily,latest,proj){
     el("line",{x1:L,x2:W-R,y1:Y(250000),y2:Y(250000),stroke:C.faint},s);}
   else{var stp=y1-y0>150000?50000:20000;for(var g=Math.ceil((y0+1)/stp)*stp;g<CAP;g+=stp){el("line",{x1:L,x2:W-R,y1:Y(g),y2:Y(g),stroke:C.faint},s);txt(s,W-R+6,Y(g)+4,(g/1000)+"K")}
     txt(s,W-R+6,Y(CAP)+4,"381K",{fill:C.water});}
+  var np=[];for(var tt=x0;tt<=x1;tt+=864e5){var nv=normFor(tt);if(nv)np.push([tt,nv*1000])}
+  if(np.length>1){el("path",{d:pathOf(np,X,Y),fill:"none",stroke:C.fg,"stroke-opacity":".45","stroke-dasharray":"1 3","stroke-width":1.5},s);
+    var nl=np[Math.floor(np.length*0.08)];txt(s,X(nl[0]),Y(nl[1])-6,"normal",{fill:C.fg,"fill-opacity":".7"})}
   el("path",{d:pathOf(pts,X,Y)+"L"+X(pts[pts.length-1][0])+" "+Y(y0)+"L"+X(x0)+" "+Y(y0)+"Z",fill:C.water,"fill-opacity":".18"},s);
   el("path",{d:pathOf(pts,X,Y),fill:"none",stroke:C.water,"stroke-width":2},s);
   var lo=pts.reduce(function(a,b){return b[1]<a[1]?b:a});
@@ -633,34 +704,65 @@ function drawStorage(host,daily,latest,proj){
   if(proj&&storm)txt(s,X(e[0]),H-5,"now",{"text-anchor":"middle"});
   txt(s,L,H-5,day(x0));txt(s,W-R,H-5,day(x1),{"text-anchor":"end"});
   var all=proj?pts.concat(proj.slice(1)):pts;
-  scrub(s,W,L,R,x0,x1,function(t){var p=nearest(all,t);$("storReadout").textContent=day(p[0])+" · "+(p[0]>e[0]?"projected ≈":"")+fmt(p[1])+" af total · "+fmt(p[1]/CAP*100,1)+"% full · usable "+fmt(Math.max(0,p[1]-INACTIVE))+" af"});
+  scrub(s,W,L,R,x0,x1,function(t){var p=nearest(all,t),nv=normFor(p[0]);$("storReadout").textContent=day(p[0])+" · "+(p[0]>e[0]?"projected ≈":"")+fmt(p[1])+" af total · "+fmt(p[1]/CAP*100,1)+"% full"+(nv?" · normal "+fmt(nv*1000):"")});
 }
-var PAST=[["’18",46,0],["’26",70,1],["’21",95,0],["’17",420,1]];
+/* Spill model, fit to Reclamation's 1988–2026 record:
+   spill (KAF) ≈ slope × max(0, April 1 storage + April–July inflow − x0); days above 800 cfs ≈ spill ÷ kday. */
 function spillUpdate(){
-  var SP=window.__spill||{}, st=SP.proj||SP.stor||OCT30, shift=(st-OCT30)/1000, FLO=Math.max(0,A.lo-shift), FHI=Math.max(0,A.hi-shift), AVG=A.avg;
-  var pct=+$("aj").value,k=Math.round(AVG*pct/100);
-  $("ajPct").textContent=pct+"%";$("ajKaf").textContent=k+" KAF April–July";
-  var lo=Math.round(Math.max(0,k-FHI)),hi=Math.round(Math.max(0,k-FLO)),v=$("verdict");
-  if(k<FLO){v.textContent="McPhee likely doesn’t fill. Short irrigation supply, no boating release.";v.style.color=C.muted}
-  else if(k<FHI){v.textContent="McPhee probably fills. Any spill is small and short, a fill-and-spill at best.";v.style.color=C.warn}
-  else if(k<FHI+40){v.textContent="A short boating release is possible, if the forecast holds.";v.style.color=C.water}
-  else{v.textContent="A managed boating release is likely.";v.style.color=C.water}
-  $("spill").textContent=hi===0?"0":(lo+"–"+hi);
-  var afd=A.boat*1.9835/1000;$("days").textContent=hi===0?"0":(Math.round(lo/afd)+"–"+Math.round(hi/afd));
-  $("boatLbl").textContent="~"+fmt(A.boat);$("aj").setAttribute("aria-label","April–July inflow as percent of "+AVG+" KAF average");
-  $("bandLegend").textContent="Likely fill threshold"+(SP.proj?" after this storm (≈"+SP.projDay+")":" today")+", "+Math.round(FLO)+"–"+Math.round(FHI)+" KAF";
-  $("math").textContent="Rough model, not DWCD’s. Spill ≈ April–July inflow − fill threshold. The threshold started at "+A.lo+"–"+A.hi+" KAF with Oct 30 total storage (204,582 af) and drops one-for-one as the reservoir gains water. It now uses the projected total storage after the current storm runoff; it assumes normal winter base flow and normal irrigation use, calibrated loosely against 2023 and 2019. "+fmt(A.boat)+" cfs for a day ≈ "+fmt(A.boat*1.9835)+" af. Official CBRFC forecasts replace this slider from January.";
-  var host=$("budget");host.innerHTML="";var W=Math.max(280,host.clientWidth),H=96,L=6,R=6,MAXK=500;
-  var s=el("svg",{viewBox:"0 0 "+W+" "+H,width:"100%",role:"img","aria-label":"Scenario "+k+" KAF against a fill threshold of "+Math.round(FLO)+" to "+Math.round(FHI)+" KAF"},host);
-  var X=function(v){return L+v/MAXK*(W-L-R)},by=48,bh=14;
-  el("rect",{x:X(0),y:by,width:X(MAXK)-X(0),height:bh,rx:7,fill:C.faint},s);
-  el("rect",{x:X(0),y:by,width:Math.max(0,X(Math.min(k,MAXK))-X(0)),height:bh,rx:7,fill:C.water,"fill-opacity":".85"},s);
-  el("rect",{x:X(FLO),y:by-6,width:X(FHI)-X(FLO),height:bh+12,fill:C.warn,"fill-opacity":".28",stroke:C.warn,"stroke-opacity":".6"},s);
-  el("line",{x1:X(AVG),x2:X(AVG),y1:by-8,y2:by+bh+8,stroke:C.fg,"stroke-opacity":".6"},s);
-  txt(s,X(AVG)+4,by+bh+20,"avg "+AVG);
-  PAST.forEach(function(p){var x=X(p[1]),ty=p[2]?14:28;el("line",{x1:x,x2:x,y1:ty+4,y2:by,stroke:C.muted,"stroke-opacity":".6"},s);txt(s,x,ty,p[0],{"text-anchor":"middle"})});
-  txt(s,X(0),H-4,"0");txt(s,X(MAXK),H-4,"500 KAF",{"text-anchor":"end"});
-  txt(s,(X(FLO)+X(FHI))/2,by+bh+20,"fill",{"text-anchor":"middle",fill:C.warn});
+  var SP=window.__spill||{};if(SP.base==null)return;
+  var bt=SP.baseT||Date.now(),p=mtParts(bt);
+  var aprY=p.month>=4?p.year+1:p.year, apr1=Date.UTC(aprY,3,1,7), nov10=Date.UTC(aprY-1,10,10,7);
+  var inRunoff=p.month>=4&&p.month<=7, frac=Math.max(0,Math.min(1,(apr1-bt)/(apr1-nov10)));
+  var b0=SP.base/1000, w=A.winter*frac, wD=(A.winter+WINTER_DRY)*frac, wW=(A.winter+WINTER_WET)*frac;
+  var s0=b0+w, s0d=b0+wD, s0w=b0+wW;
+  var pct=+$("aj").value, aj=A.avg*pct/100;
+  var f=function(x){return A.slope*Math.max(0,x-A.x0)};
+  var X=s0+aj, sp=f(X), spD=f(s0d+aj), spW=f(s0w+aj);
+  $("ajLabel").textContent="Drag: April–July inflow, % of the 1991–2020 average ("+fmt(A.avg)+",000 af)";
+  $("ajPct").textContent=pct+"%";$("ajKaf").textContent=fmt(aj)+" KAF April–July";
+  $("s0").textContent=fmt(s0);$("s0sub").textContent="";
+  var rng=function(lo,hi,d){lo=Math.round(lo/d)*d;hi=Math.round(hi/d)*d;return lo===hi?fmt(lo):fmt(lo)+"–"+fmt(hi)};
+  $("spill").textContent=spW<0.5?"0":rng(spD,spW,1);
+  $("days").textContent=spW<0.5?"0":rng(Math.min(100,spD/A.kday),Math.min(100,spW/A.kday),1);
+  var v=$("verdict"),nd=Math.round(Math.min(100,sp/A.kday));
+  if(X<A.x0-60){v.textContent="McPhee likely doesn’t fill. Expect a short irrigation supply and no release.";v.style.color=C.muted}
+  else if(sp<0.5){v.textContent="McPhee gets close to full but likely doesn’t spill.";v.style.color=C.warn}
+  else if(sp<30){v.textContent="A small fill-and-spill: about "+Math.max(1,nd)+" days above 800 cfs, often on short notice.";v.style.color=C.warn}
+  else if(nd<45){v.textContent="A boating release of about "+nd+" days above 800 cfs.";v.style.color=C.water}
+  else{v.textContent="A big release year: about "+nd+" days above 800 cfs.";v.style.color=C.water}
+  if(inRunoff){v.textContent="Runoff is underway, so this rough model no longer applies. Watch DWCD’s operating plan instead.";v.style.color=C.muted}
+  $("math").textContent="Rough model from Reclamation’s daily record for 1988–2026, not DWCD’s operating plan. Spill ≈ "+A.slope.toFixed(2)+" × (April 1 storage + April–July inflow − "+fmt(A.x0)+" KAF); that fit misses actual spills by about 11 KAF on average. April 1 storage starts from "+(SP.fromProj?"projected storage after this storm":"today’s storage")+", "+fmt(b0)+" KAF, and adds a median winter ("+sgn(A.winter)+" KAF from Nov 10 to Apr 1); the range runs from a dry winter ("+sgn(A.winter+WINTER_DRY)+") to a wet one ("+sgn(A.winter+WINTER_WET)+"). Spills put about "+A.kday.toFixed(1)+" KAF downriver for each day above 800 cfs. The estimate is tuned for November through March; from August through October, irrigation is still drawing the lake down. Once CBRFC’s April–July forecast is issued in January, that forecast will replace the slider.";
+  drawScatter(s0,s0d,s0w,aj,sp);
+}
+function drawScatter(s0,s0d,s0w,aj,sp){
+  var host=$("scatter");host.innerHTML="";
+  var W=Math.max(300,host.clientWidth),H=Math.round(Math.min(330,Math.max(250,W*0.62))),L=8,R=40,T=20,B=34;
+  var x0=200,x1=900,y0=0,y1=380,Xs=scale(x0,x1,L,W-R),Ys=scale(y0,y1,H-B,T);
+  var s=el("svg",{viewBox:"0 0 "+W+" "+H,width:"100%",role:"img","aria-label":"Every spring since 1988: April 1 storage plus April–July inflow against the volume spilled, with this year's estimate"},host);
+  [100,200,300].forEach(function(v){el("line",{x1:L,x2:W-R,y1:Ys(v),y2:Ys(v),stroke:C.faint},s);txt(s,W-R+6,Ys(v)+4,v+"K")});
+  [300,400,500,600,700,800].forEach(function(v){txt(s,Xs(v),H-B+16,v+"K",{"text-anchor":"middle"})});
+  txt(s,L,T-8,"Spilled downriver, April–July");
+  txt(s,W-R,H-4,"April 1 storage + April–July inflow",{"text-anchor":"end"});
+  el("rect",{x:Xs(s0d+aj),y:T,width:Math.max(2,Xs(s0w+aj)-Xs(s0d+aj)),height:H-B-T,fill:C.water,"fill-opacity":".14"},s);
+  el("path",{d:"M"+Xs(x0)+" "+Ys(0)+" L"+Xs(A.x0)+" "+Ys(0)+" L"+Xs(x1)+" "+Ys(A.slope*(x1-A.x0)),fill:"none",stroke:C.fg,"stroke-opacity":".5","stroke-width":1.5},s);
+  el("line",{x1:Xs(A.x0),x2:Xs(A.x0),y1:Ys(0),y2:T+30,stroke:C.warn,"stroke-dasharray":"3 3","stroke-opacity":".8"},s);
+  txt(s,Xs(A.x0)-4,T+26,"fills ≈"+fmt(A.x0)+"K",{"text-anchor":"end",fill:C.warn});
+  var LBL={1993:1,2023:1,2019:1,2016:1,2026:1};
+  HIST.forEach(function(r){var x=r[1]+r[2],y=r[3],sp1=y>0;
+    el("circle",{cx:Xs(x),cy:Ys(y),r:sp1?4:3.5,fill:sp1?C.water:"none",stroke:sp1?C.water:C.muted,"stroke-width":1.2,"fill-opacity":".85"},s);
+    if(LBL[r[0]])txt(s,Xs(x),Ys(y)-8,"’"+String(r[0]).slice(2)+(r[0]===2026?" (dry)":""),{"text-anchor":y>0?"end":"middle",class:"lbl"});
+  });
+  var X=s0+aj;
+  el("line",{x1:Xs(X),x2:Xs(X),y1:T,y2:Ys(0),stroke:C.water,"stroke-width":1.5},s);
+  el("circle",{cx:Xs(X),cy:Ys(sp),r:6,fill:"#0d1720",stroke:C.water,"stroke-width":2.5},s);
+  txt(s,Xs(X)+(Xs(X)>W*0.7?-8:8),T+12,"this year",{"text-anchor":Xs(X)>W*0.7?"end":"start",fill:C.water});
+  var base="This year, est.: "+fmt(s0)+"K on April 1 + "+fmt(aj)+"K in spring = "+fmt(X)+"K → "+(sp<0.5?"no spill.":"about "+fmt(sp)+"K spilled.");
+  $("scReadout").textContent=base;
+  scrub(s,W,L,R,x0,x1,function(xv){
+    var best=null;HIST.forEach(function(r){var d=Math.abs(r[1]+r[2]-xv);if(!best||d<best.d)best={d:d,r:r}});
+    if(Math.abs(X-xv)<best.d){$("scReadout").textContent=base;return}
+    var r=best.r;$("scReadout").textContent=r[0]+": started April with "+r[1]+"K, spring brought "+r[2]+"K → "+(r[3]?r[3]+"K spilled, "+r[4]+" days above 800 cfs":"no spill; peaked at "+r[5]+"K")+".";
+  });
 }
 function drawBands(host,marks){
   host.innerHTML="";var W=Math.max(280,host.clientWidth),H=104,L=4,R=4,lo=Math.log10(5),hi=Math.log10(10000);
@@ -679,17 +781,16 @@ function drawBands(host,marks){
 /* ---------- boot ---------- */
 $("aj").addEventListener("input",spillUpdate);
 var DATA=null,t,RANGE="storm";
-var AIN={aFactor:"factor",aLo:"lo",aHi:"hi",aAvg:"avg",aBoat:"boat"};
+var AIN={aFactor:"factor",aX0:"x0",aSlope:"slope",aWinter:"winter",aAvg:"avg",aKday:"kday"};
 function syncInputs(){Object.keys(AIN).forEach(function(id){var k=AIN[id];$(id).value=A[k];$(id).classList.toggle("edited",A[k]!==DEF[k])})}
 function saveA(){try{localStorage.setItem(AKEY,JSON.stringify(A))}catch(e){}}
 Object.keys(AIN).forEach(function(id){$(id).addEventListener("input",function(){
   var k=AIN[id],v=parseFloat($(id).value),inp=$(id);
   if(!isFinite(v)||v<+inp.min||v>+inp.max){$("aErr").textContent="Enter a number between "+inp.min+" and "+inp.max+".";return}
-  var lo=k==="lo"?v:A.lo,hi=k==="hi"?v:A.hi;if(lo>hi){$("aErr").textContent="The low threshold must be at or below the high one.";return}
   $("aErr").textContent="";A[k]=v;inp.classList.toggle("edited",v!==DEF[k]);saveA();draw()})});
 $("aReset").addEventListener("click",function(){A=Object.assign({},DEF);try{localStorage.removeItem(AKEY)}catch(e){}$("aErr").textContent="";syncInputs();draw()});
 syncInputs();
-function setRange(r){RANGE=r;$("rStorm").setAttribute("aria-pressed",r==="storm");$("rSeason").setAttribute("aria-pressed",r!=="storm");$("storTitle").textContent=r==="storm"?"Total storage · this storm":"Total storage · since July 1";draw()}
+function setRange(r){RANGE=r;$("rStorm").setAttribute("aria-pressed",r==="storm");$("rSeason").setAttribute("aria-pressed",r!=="storm");$("storTitle").textContent=r==="storm"?"Total storage · this storm":"Total storage · last 4 months";draw()}
 $("rStorm").addEventListener("click",function(){setRange("storm")});$("rSeason").addEventListener("click",function(){setRange("season")});
 function draw(){if(DATA)render(DATA)}
 window.addEventListener("resize",function(){clearTimeout(t);t=setTimeout(draw,150)});
