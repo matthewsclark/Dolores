@@ -107,6 +107,8 @@ header{padding:24px 0 6px}
 .dots button.big2{background:var(--water);border-color:var(--water)}
 .dots button.small{background:#2f6f80;border-color:#2f6f80}
 .dots button.toss{background:var(--warn);border-color:var(--warn)}
+.dots button.en{box-shadow:0 0 0 2px var(--top),0 0 0 3.5px var(--fg)}
+.dots{gap:7px}
 .dots button[aria-pressed="true"]{outline:2px solid var(--fg);outline-offset:2px}
 .dots button:focus-visible{outline:2px solid var(--water);outline-offset:2px}
 .ladder{position:relative;display:grid}
@@ -272,8 +274,15 @@ svg .lbl{fill:var(--fg)}
       <p class="lede" id="oddsLede"></p>
       <div class="dots" id="oddsDots" role="group" aria-label="Each past spring's inflow applied to this year's starting storage"></div>
       <div class="readout" id="oddsReadout">One dot per spring, driest first. Tap a dot to see that spring.</div>
-      <div class="legend"><span><span class="sw" style="background:var(--water);border-radius:50%"></span>Two weeks or more above 800 cfs</span><span><span class="sw" style="background:#2f6f80;border-radius:50%"></span>Shorter spill</span><span><span class="sw" style="background:var(--warn);border-radius:50%"></span>Toss-up, within the model’s error</span><span><span class="sw" style="background:transparent;border:1px solid var(--muted);border-radius:50%"></span>No spill</span></div>
+      <div class="legend"><span><span class="sw" style="background:var(--water);border-radius:50%"></span>Two weeks or more above 800 cfs</span><span><span class="sw" style="background:#2f6f80;border-radius:50%"></span>Shorter spill</span><span><span class="sw" style="background:var(--warn);border-radius:50%"></span>Toss-up, within the model’s error</span><span><span class="sw" style="background:transparent;border:1px solid var(--muted);border-radius:50%"></span>No spill</span><span><span class="sw" style="background:transparent;border-radius:50%;box-shadow:0 0 0 2px var(--fg)"></span>Ringed: El Niño winter</span></div>
       <p class="mono" id="oddsNote"></p>
+    </div>
+    <div class="card split" id="ensoCard">
+      <div class="eyebrow">What El Niño adds</div>
+      <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap"><span class="num big" id="ensoN">—</span><span class="mono" id="ensoOf"></span></div>
+      <p class="lede" id="ensoLede"></p>
+      <p class="lede" id="ensoBut"></p>
+      <p class="mono">El Niño winters: December–February index of +0.5 or higher (NOAA Oceanic Niño Index). Thirteen springs is a small sample.</p>
     </div>
     <div class="card split" id="fcCard" hidden>
       <div class="eyebrow">The forecast center’s number</div>
@@ -369,6 +378,7 @@ svg .lbl{fill:var(--fg)}
     <li><a href="https://data.usbr.gov/rise/">Reclamation RISE</a> · McPhee daily storage, inflow and release since 1984: normal storage for the date, spill history and the spill fit</li>
     <li><a href="https://www.doloreswater.com/faq">DWCD</a> · capacity, pools, average inflow, spill frequency · <a href="https://www.americanwhitewater.org/article/32610/">American Whitewater</a> · boating flows</li>
     <li><a href="https://www.cbrfc.noaa.gov/wsup/graph/espgraph_hc.html?id=MPHC2">Colorado Basin River Forecast Center</a> · April–July inflow forecasts for McPhee, current and archived back to 2009</li>
+    <li><a href="https://www.cpc.ncep.noaa.gov/data/indices/oni.ascii.txt">NOAA Climate Prediction Center</a> · Oceanic Niño Index, for El Niño winters</li>
     <li>Not yet wired: DWCD release notes</li>
   </ul>
 </footer>
@@ -817,6 +827,8 @@ function spillUpdate(){
 /* Tested by leaving each spring out, refitting, and predicting it: typical miss 12 KAF (14.6 for springs at or past the line);
    spill-or-no-spill called right in 38 of 39. Days above 800 cfs miss by about 10 for a given spill volume. */
 var ERR_KAF=12, ODDS_SEL=null;
+/* Springs after an El Nino winter: December-February Oceanic Nino Index >= +0.5 (NOAA CPC). */
+var ELNINO={1988:1,1992:1,1995:1,1998:1,2003:1,2005:1,2007:1,2010:1,2015:1,2016:1,2019:1,2020:1,2024:1};
 /* Backtest: the model fed each official CBRFC median forecast (MPHC2, 2009-2026) and the storage known that day.
    [issue label, month, spill RMSE in KAF, spill-or-not calls right, springs] */
 var TRACK=[["January 1",1,78,12,17],["February 1",2,68,14,17],["March 1",3,57,16,17],["April 1",4,22,16,17],["May 1",5,11,16,17]];
@@ -845,8 +857,14 @@ function drawOdds(s0){
   $("oddsOf").textContent="would spill · "+fmt((big+small)/tot*100)+"%";
   $("oddsLede").textContent="Start with our estimate of McPhee’s storage on April 1, about "+fmt(s0)+",000 acre-feet (today’s storage plus a typical winter). Then add each spring’s actual inflow since 1988. "+(big+small)+" of those "+tot+" springs push it past the spill line, and "+big+" of them carry enough for two weeks or more above 800 cfs."+(toss?" Another "+toss+" land too close to call.":"");
   $("oddsNote").textContent="Springs since 2000 have run drier, and counting only those the odds are "+(n("big2",2000)+n("small",2000))+" of "+rec+". This treats next spring as a random draw from the past; it doesn’t know this winter’s snowpack. The official forecast narrows it from January.";
-  rows.forEach(function(r){var b=h("button",r.c==="none"?"":r.c);b.type="button";
-    var d=r.y+"’s spring brought "+r.aj+"K. On this year’s start that makes "+fmt(r.X)+"K → "+(r.c==="none"?"no spill.":r.c==="toss"?"too close to call.":"about "+fmt(r.sp)+"K spilled, roughly "+fmt(Math.min(100,r.sp/A.kday))+" days above 800 cfs.");
+  var en=rows.filter(function(r){return ELNINO[r.y]}),ot=rows.filter(function(r){return !ELNINO[r.y]});
+  var sp1=function(a){return a.filter(function(r){return r.c==="big2"||r.c==="small"}).length},dry=function(a){return a.filter(function(r){return r.aj<150}).length};
+  var es=(window.__D&&window.__D.extras&&window.__D.extras.enso)||null,SE={DJF:"December–February",JFM:"January–March",FMA:"February–April",MAM:"March–May",AMJ:"April–June",MJJ:"May–July",JJA:"June–August",JAS:"July–September",ASO:"August–October",SON:"September–November",OND:"October–December",NDJ:"November–January"};
+  $("ensoN").textContent=sp1(en)+" of "+en.length;$("ensoOf").textContent="El Niño springs would spill · "+fmt(sp1(en)/en.length*100)+"%";
+  $("ensoLede").textContent=(es&&es.oni>=0.5?"This winter is an El Niño, and a "+(es.oni>=1.5?"strong":"moderate")+" one: NOAA’s index for "+(SE[es.season]||es.season)+" is "+sgn(es.oni,2)+". ":"")+"El Niño tilts the odds, mostly by trimming the dry years. Only "+dry(en)+" of the "+en.length+" El Niño springs since 1988 brought less than 150,000 acre-feet, against "+dry(ot)+" of the other "+ot.length+". Put those "+en.length+" springs on this year’s start and "+sp1(en)+" spill; the other "+ot.length+" give "+sp1(ot)+".";
+  $("ensoBut").textContent="It doesn’t set the size. The two biggest springs on record, 1993 and 2023, came in neutral and La Niña winters, and the strong El Niño of 2024 brought just 114,000 acre-feet. Across all 39 springs, the index explains almost none of the inflow. The real signal is snow on the ground, and that firms up from March.";
+  rows.forEach(function(r){var b=h("button",(r.c==="none"?"":r.c)+(ELNINO[r.y]?" en":""));b.type="button";
+    var d=r.y+"’s spring"+(ELNINO[r.y]?", after an El Niño winter,":"")+" brought "+r.aj+"K. On this year’s start that makes "+fmt(r.X)+"K → "+(r.c==="none"?"no spill.":r.c==="toss"?"too close to call.":"about "+fmt(r.sp)+"K spilled, roughly "+fmt(Math.min(100,r.sp/A.kday))+" days above 800 cfs.");
     b.setAttribute("aria-label",d);b.setAttribute("aria-pressed",String(ODDS_SEL===r.y));
     b.addEventListener("click",function(){ODDS_SEL=r.y;$("oddsReadout").textContent=d;host.querySelectorAll("button").forEach(function(x){x.setAttribute("aria-pressed","false")});b.setAttribute("aria-pressed","true")});
     if(ODDS_SEL===r.y)$("oddsReadout").textContent=d;

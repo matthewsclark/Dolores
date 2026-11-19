@@ -185,6 +185,15 @@ try:
 except Exception as e:
     print("cbrfc", e, file=sys.stderr)
 
+# --- El Nino index (NOAA CPC Oceanic Nino Index), latest three-month season
+try:
+    req = urllib.request.Request("https://www.cpc.ncep.noaa.gov/data/indices/oni.ascii.txt", headers=UA)
+    with urllib.request.urlopen(req, timeout=60) as r:
+        last = [l.split() for l in r.read().decode().splitlines() if len(l.split()) == 4][-1]
+    out["extras"]["enso"] = {"season": last[0], "year": int(last[1]), "oni": float(last[3])}
+except Exception as e:
+    print("enso", e, file=sys.stderr)
+
 path = sys.argv[1] if len(sys.argv) > 1 else "snapshot.json"
 with open(path, "w") as f:
     json.dump(out, f, separators=(",", ":"))
