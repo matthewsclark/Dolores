@@ -497,7 +497,9 @@ function render(D){
   (dol&&dol.series||[]).concat(dol&&dol.latest?[dol.latest]:[]).forEach(function(p){if(!wyPk||p[1]>wyPk.cfs)wyPk={t:p[0],cfs:p[1]}});
   var pkRank=wyPk?peakRank(wyPk.cfs):null;
 
-  estimateLC(G.lostcanyon);
+  try{estimateLC(G.lostcanyon)}catch(e){}
+  /* without an NWS rating there is no flow estimate; show the USGS water level instead */
+  var lcg=G.lostcanyon;if(lcg&&!lcg.est&&lcg.stageSeries&&lcg.stageSeries.length){var lsl=lcg.stageSeries[lcg.stageSeries.length-1];lcg.stage=lsl[1];lcg.stageT=lsl[0]}
   var dsum=(D.diversions||[]).reduce(function(a,d){return a+(+d.value||0)},0);
   var proj=project(M,dol,dsum,G.lostcanyon);
   /* hero */
@@ -616,7 +618,7 @@ function render(D){
   setSpine($("reachHead"),dc);setSpine($("reachLow"),bc);
 }
 function rate(rt,h){if(!rt||rt.length<3||h<rt[0][0])return null;for(var i=1;i<rt.length;i++){if(rt[i][0]>=h){var a=rt[i-1],b=rt[i];return a[1]+(b[1]-a[1])*(h-a[0])/((b[0]-a[0])||1)}}return null}
-function estimateLC(g){if(!g||!g.stageSeries||!g.stageSeries.length||!g.rating)return;
+function estimateLC(g){if(!g||!g.stageSeries||!g.stageSeries.length||!g.rating||g.rating.length<3)return;
   var ss=g.stageSeries,last=ss[ss.length-1],top=g.rating[g.rating.length-1];
   g.estSeries=ss.filter(function(p){return new Date(p[0]).getUTCMinutes()===0}).map(function(p){return [p[0],rate(g.rating,p[1])]}).filter(function(p){return p[1]!=null});
   g.est={t:last[0],stage:last[1],cfs:rate(g.rating,last[1]),over:last[1]>top[0],top:top};
@@ -655,6 +657,7 @@ function tile(host,g,sub,color){
   var meta=srcL+(g.latest?" · "+when(g.latest[0]):"");
   if(stale)meta=(g.usgs?"USGS "+g.usgs:"")+" · flow stale since "+day(g.latest[0]);
   if(!g.latest&&!g.series.length)meta=(g.usgs?"USGS "+g.usgs+" · ":"")+"no live flow";
+  if(!g.latest&&g.stageT)meta="USGS "+g.usgs+" · water level only · "+when(g.stageT);
   var mEl=h("span","mono",meta);if(g.latest&&!stale&&Date.now()-g.latest[0]>4*36e5){mEl.textContent="Last reading "+when(g.latest[0])+" · "+srcL;mEl.style.color=C.warn}
   t.appendChild(mEl);t.appendChild(h("span","mono",sub));
   host.appendChild(t);
