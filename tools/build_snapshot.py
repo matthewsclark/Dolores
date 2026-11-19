@@ -147,7 +147,102 @@ for trip, name, elev in SNOW:
             rec["hourly"][e["stationElement"]["elementCode"]] = vals[-1]
     out["snow"].append(rec)
 
+# --- CBRFC April-July inflow forecast for McPhee (MPHC2). The site doesn't allow browsers to read it directly,
+# so the page gets it from this snapshot. Daily model runs (ESP) start mid-December; official forecasts are issued monthly.
+def cbrfc():
+    fy = now.year + 1 if now.month >= 10 else now.year
+    req = urllib.request.Request(f"https://www.cbrfc.noaa.gov/wsup/graph/esptxt.py?id=MPHC2&year={fy}&csv=1", headers=UA)
+    with urllib.request.urlopen(req, timeout=90) as r:
+        text = r.read().decode("utf-8", "replace")
+    esp = official = None
+    for line in text.splitlines():
+        c = line.replace("</pre>", "").strip().split(",")
+        if len(c) < 13 or len(c[0]) != 10 or c[0][4] != "-":
+            continue
+        def num(x):
+            try:
+                return float(x)
+            except ValueError:
+                return None
+        e = [num(x) for x in c[1:8]]
+        o = [v for v in (num(x) for x in c[8:13]) if v is not None]
+        if e[3] is not None:
+            esp = {"date": c[0], "q": {"10": e[1], "30": e[2], "50": e[3], "70": e[4], "90": e[5]}}
+        if len(o) == 5:
+            official = {"date": c[0], "q": dict(zip(["10", "30", "50", "70", "90"], o))}
+        elif len(o) == 3:
+            official = {"date": c[0], "q": dict(zip(["10", "50", "90"], o))}
+    return {"year": fy, "esp": esp, "official": official}
+
+
+try:
+    out["extras"]["cbrfc"] = cbrfc()
+except Exception as e:
+    print("cbrfc", e, file=sys.stderr)
+
 path = sys.argv[1] if len(sys.argv) > 1 else "snapshot.json"
 with open(path, "w") as f:
     json.dump(out, f, separators=(",", ":"))
 print("ok", len(json.dumps(out)) // 1024, "KB")
+
+
+# --- Daily log for scoring the spill model after runoff: one row per day, latest run of the day wins.
+# Uses the page's default settings: spill = 0.92 x max(0, April 1 storage + April-July inflow - 486 KAF).
+import csv
+import os
+
+HIST_AJ = [194, 185, 116, 235, 299, 519, 239, 470, 147, 461, 318, 312, 203, 209, 45, 204, 204, 462, 169, 212, 379, 255, 246, 275, 120, 84, 174, 227, 243, 348, 47, 455, 94, 85, 146, 526, 114, 109, 61]  # April-July inflow, KAF, 1988-2026
+X0, SLOPE, WINTER_NET = 486.0, 0.92, 12.5
+
+
+def p_spill(q, need):
+    """Chance April-July inflow exceeds `need`, read off the forecast's exceedance levels."""
+    pts = sorted((v, float(ex)) for ex, v in q.items() if v is not None)
+    if need <= pts[0][0]:
+        return min(0.97, pts[0][1] / 100 + 0.05)
+    if need >= pts[-1][0]:
+        return max(0.03, pts[-1][1] / 100 - 0.05)
+    for (v1, e1), (v2, e2) in zip(pts, pts[1:]):
+        if v1 <= need <= v2:
+            return (e1 + (e2 - e1) * (need - v1) / ((v2 - v1) or 1)) / 100
+
+
+try:
+    local = now - dt.timedelta(hours=7)
+    apr_year = local.year + 1 if local.month >= 4 else local.year
+    apr1, nov10 = dt.datetime(apr_year, 4, 1), dt.datetime(apr_year - 1, 11, 10)
+    frac = max(0.0, min(1.0, (apr1 - local.replace(tzinfo=None)) / (apr1 - nov10)))
+    stor = out["mcphee"]["latest"]["value"]
+    s0 = stor / 1000 + WINTER_NET * frac
+    need = X0 - s0
+    cb = out["extras"].get("cbrfc") or {}
+    fc = (cb.get("official") or cb.get("esp") or {})
+    q = fc.get("q") or {}
+    dol = out["gauges"]["dolores"]["latest"]
+    row = {
+        "date": local.strftime("%Y-%m-%d"),
+        "storage_af": round(stor),
+        "dolores_cfs": dol[1] if dol else "",
+        "est_apr1_kaf": round(s0, 1),
+        "inflow_needed_kaf": round(need, 1),
+        "odds_history": round(sum(1 for a in HIST_AJ if a > need) / len(HIST_AJ), 2),
+        "fc_source": "official" if cb.get("official") else "esp" if cb.get("esp") else "",
+        "fc_date": fc.get("date", ""),
+        "fc_p10": q.get("10", ""), "fc_p30": q.get("30", ""), "fc_p50": q.get("50", ""), "fc_p70": q.get("70", ""), "fc_p90": q.get("90", ""),
+        "spill_at_median_kaf": round(SLOPE * max(0, s0 + q["50"] - X0), 1) if q.get("50") else "",
+        "odds_forecast": round(p_spill(q, need), 2) if q.get("50") else "",
+    }
+    log_path = os.path.join(os.path.dirname(os.path.abspath(path)), "log", "model_log.csv")
+    os.makedirs(os.path.dirname(log_path), exist_ok=True)
+    rows = []
+    if os.path.exists(log_path):
+        with open(log_path, newline="") as f:
+            rows = [r for r in csv.DictReader(f) if r["date"] != row["date"]]
+    rows.append(row)
+    with open(log_path, "w", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=list(row.keys()))
+        w.writeheader()
+        w.writerows(rows)
+    print("logged", row["date"], row["est_apr1_kaf"], row["odds_history"])
+except Exception as e:
+    print("log", e, file=sys.stderr)

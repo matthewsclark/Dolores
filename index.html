@@ -97,6 +97,10 @@ header{padding:24px 0 6px}
 .reset:focus-visible{outline:2px solid var(--water)}
 .readout{font-family:var(--mono);font-size:12px;color:var(--fg);min-height:18px}
 .big{font-size:52px}
+.trk{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px}
+.trk th{text-align:left;color:var(--muted);font-weight:400;padding:6px 6px 6px 0;border-bottom:1px solid var(--faint)}
+.trk td{padding:7px 6px 7px 0;border-bottom:1px solid var(--faint);font-variant-numeric:tabular-nums}
+.trk tr.now td{color:var(--water)}
 .dots{display:grid;grid-template-columns:repeat(13,minmax(0,1fr));gap:4px}
 .dots button{aspect-ratio:1;min-height:20px;border-radius:50%;border:1.5px solid var(--muted);background:none;padding:0;cursor:pointer}
 .dots button.big2{background:var(--water);border-color:var(--water)}
@@ -268,6 +272,18 @@ svg .lbl{fill:var(--fg)}
       <div class="legend"><span><span class="sw" style="background:var(--water);border-radius:50%"></span>Two weeks or more above 800 cfs</span><span><span class="sw" style="background:#2f6f80;border-radius:50%"></span>Shorter spill</span><span><span class="sw" style="background:var(--warn);border-radius:50%"></span>Toss-up, within the model’s error</span><span><span class="sw" style="background:transparent;border:1px solid var(--muted);border-radius:50%"></span>No spill</span></div>
       <p class="mono" id="oddsNote"></p>
     </div>
+    <div class="card split" id="fcCard" hidden>
+      <div class="eyebrow">The forecast center’s number</div>
+      <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap"><span class="num big" id="fcOdds">—</span><span class="mono" id="fcOf"></span></div>
+      <p class="lede" id="fcLede"></p>
+      <button type="button" class="reset" id="fcUse" style="justify-self:start">Set the slider to the median forecast</button>
+    </div>
+    <div class="card split">
+      <div class="eyebrow">How far out can it be trusted?</div>
+      <p class="mono">The model run on each official forecast, 2009–2026 (17 springs), against what happened.</p>
+      <table class="trk"><thead><tr><th>Forecast issued</th><th>Spill volume off by</th><th>Spill or not, right</th></tr></thead><tbody id="trkBody"></tbody></table>
+      <p class="mono">The official median ran high in these years: by about 40,000 af in January and February and 30,000 on April 1. Sharp changes after March, like 2019 and 2023, came from late snow the early forecasts couldn’t see.</p>
+    </div>
     <div class="card split">
       <label for="aj" class="mono" id="ajLabel">Drag: April–July inflow, % of average</label>
       <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap"><span class="num big" id="ajPct">100%</span><span class="mono" id="ajKaf"></span></div>
@@ -349,7 +365,8 @@ svg .lbl{fill:var(--fg)}
     <li><a href="https://wcc.sc.egov.usda.gov/">NRCS</a> SNOTEL · Black Mesa, Sharkstooth, El Diente Peak, Lizard Head Pass, Lone Cone, Scotch Creek · Groundhog snow course</li>
     <li><a href="https://data.usbr.gov/rise/">Reclamation RISE</a> · McPhee daily storage, inflow and release since 1984: normal storage for the date, spill history and the spill fit</li>
     <li><a href="https://www.doloreswater.com/faq">DWCD</a> · capacity, pools, average inflow, spill frequency · <a href="https://www.americanwhitewater.org/article/32610/">American Whitewater</a> · boating flows</li>
-    <li>Not yet wired: CBRFC’s April–July McPhee forecast (issued January–June) and DWCD release notes</li>
+    <li><a href="https://www.cbrfc.noaa.gov/wsup/graph/espgraph_hc.html?id=MPHC2">Colorado Basin River Forecast Center</a> · April–July inflow forecasts for McPhee, current and archived back to 2009</li>
+    <li>Not yet wired: DWCD release notes</li>
   </ul>
 </footer>
 
@@ -484,7 +501,7 @@ function lastN(series,days){if(!series||!series.length)return [];var t0=series[s
 
 /* ---------- render ---------- */
 function render(D){
-  var G=D.gauges, M=D.mcphee, live=D.mode==="live";
+  window.__D=D;var G=D.gauges, M=D.mcphee, live=D.mode==="live";
   $("modeDot").style.background=live?C.ok||"#7fc79d":C.warn;
   $("modeText").textContent=(live?"Live · ":"Snapshot · ")+when(Date.parse(D.generated))+" MT";
   var inClaude=/claude/.test(location.hostname)||location.protocol==="file:";
@@ -512,6 +529,7 @@ function render(D){
   var wyPk=(D.extras&&D.extras.wyPeak)||null;
   (dol&&dol.series||[]).concat(dol&&dol.latest?[dol.latest]:[]).forEach(function(p){if(!wyPk||p[1]>wyPk.cfs)wyPk={t:p[0],cfs:p[1]}});
   var pkRank=wyPk?peakRank(wyPk.cfs):null;
+  var nxPk=wyPk?PEAKS.filter(function(p){return p[1]<=wyPk.cfs})[0]:null;
 
   try{estimateLC(G.lostcanyon)}catch(e){}
   /* without an NWS rating there is no flow estimate; show the USGS water level instead */
@@ -582,7 +600,7 @@ function render(D){
   $("h-head").textContent=(dc>1500&&share>0.6)?fmt(share*100)+"% of the flow at Dolores is coming from below the Rico gauge.":"The upper river, gauge by gauge.";
   var hl=(rN!=null&&dc)?"Right now Rico reads "+fmt(rN)+" cfs. The other "+fmt(dc-rN)+" cfs at Dolores comes from the West Fork, Bear and Stoner creeks and the rest of the 398 square miles between the two gauges. When that share runs high while Rico stays low, the water is coming from rain or lower-elevation snow, as in this storm.":"";
   var pl="";
-  if(pkRank)pl="This water year’s peak at Dolores, "+fmt(wyPk.cfs)+" cfs on "+day(wyPk.t)+", is the "+ord(pkRank)+"-highest in USGS annual peak records going back to 1896"+(pkRank===2?"; only October 1911, at 10,000 cfs, ran higher":"")+". It’s provisional until USGS reviews it.";
+  if(pkRank)pl="This water year’s peak at Dolores, "+fmt(wyPk.cfs)+" cfs on "+day(wyPk.t)+", is the "+ord(pkRank)+"-highest in USGS annual peak records going back to 1896"+(pkRank===2?"; only October 1911, at 10,000 cfs, ran higher":"")+(nxPk&&(wyPk.cfs-nxPk[1])/nxPk[1]<0.03?", and it sits just ahead of "+nxPk[0].slice(0,4)+"’s "+fmt(nxPk[1]):"")+". It’s provisional, and USGS has already revised it once, from 9,490.";
   $("headLede").textContent=hl;$("peakLede").textContent=pl;
   drawHydro($("hydro"),ser,rs,dol.forecast||[],(wyPk&&ser.length&&wyPk.t>=ser[0][0])?wyPk:null,pkRank);
   var HT=$("headTiles");HT.innerHTML="";
@@ -785,11 +803,29 @@ function spillUpdate(){
   if(inRunoff){v.textContent="Runoff is underway, so this rough model no longer applies. Watch DWCD’s operating plan instead.";v.style.color=C.muted}
   $("math").textContent="Rough model from Reclamation’s daily record for 1988–2026, not DWCD’s operating plan. Spill ≈ "+A.slope.toFixed(2)+" × (April 1 storage + April–July inflow − "+fmt(A.x0)+" KAF). Tested by leaving each spring out and predicting it from the others, it misses the spill volume by about 12 KAF and called spill-or-no-spill right in 38 of 39 springs; the spill line has held steady, 477 to 486 KAF, across the 1990s, 2000s and 2010s. For a given spill, days above 800 cfs vary by about 10 either way, depending on how the release is run. April 1 storage starts from "+(SP.fromProj?"projected storage after this storm":"today’s storage")+", "+fmt(b0)+" KAF, then adds the winter. From Nov 10 to Apr 1 a typical winter brings "+fmt(WIN_IN[1])+" KAF of inflow; take away "+fmt(relK,1)+" KAF of dam release ("+fmt(A.wrel)+" cfs), "+fmt(A.wdiv,1)+" KAF of canal diversions and about 1 KAF of evaporation, and the lake nets "+sgn(WIN_IN[1]-outK,1)+" KAF. A dry winter ("+fmt(WIN_IN[0])+" KAF of inflow) nets "+sgn(WIN_IN[0]-outK,1)+"; a wet one ("+fmt(WIN_IN[2])+") nets "+sgn(WIN_IN[2]-outK,1)+". Spills put about "+A.kday.toFixed(1)+" KAF downriver for each day above 800 cfs. The estimate is tuned for November through March; from August through October, irrigation is still drawing the lake down. Once CBRFC’s April–July forecast is issued in January, that forecast will replace the slider.";
   if(LADDER_SEL===null||LADDER_SEL==="This yr")$("scReadout").textContent="This year, est.: "+fmt(s0)+"K on April 1 + "+fmt(aj)+"K in spring = "+fmt(s0+aj)+"K → "+(sp<0.5?"no spill.":"about "+fmt(sp)+"K spilled, give or take "+ERR_KAF+"K.");
-  drawLadder(s0,s0d,s0w,aj,sp);drawOdds(s0);
+  drawLadder(s0,s0d,s0w,aj,sp);drawOdds(s0);drawForecast(s0);
 }
 /* Tested by leaving each spring out, refitting, and predicting it: typical miss 12 KAF (14.6 for springs at or past the line);
    spill-or-no-spill called right in 38 of 39. Days above 800 cfs miss by about 10 for a given spill volume. */
 var ERR_KAF=12, ODDS_SEL=null;
+/* Backtest: the model fed each official CBRFC median forecast (MPHC2, 2009-2026) and the storage known that day.
+   [issue label, month, spill RMSE in KAF, spill-or-not calls right, springs] */
+var TRACK=[["January 1",1,78,12,17],["February 1",2,68,14,17],["March 1",3,57,16,17],["April 1",4,22,16,17],["May 1",5,11,16,17]];
+function pSpill(q,need){var pts=Object.keys(q).filter(function(k){return q[k]!=null}).map(function(k){return [q[k],+k]}).sort(function(a,b){return a[0]-b[0]});
+  if(!pts.length)return null;if(need<=pts[0][0])return Math.min(.97,pts[0][1]/100+.05);var L=pts[pts.length-1];if(need>=L[0])return Math.max(.03,L[1]/100-.05);
+  for(var i=1;i<pts.length;i++){if(need<=pts[i][0]){var a=pts[i-1],b=pts[i];return (a[1]+(b[1]-a[1])*(need-a[0])/((b[0]-a[0])||1))/100}}return null}
+function drawForecast(s0){
+  var mo=mtParts(Date.now()).month,tb=$("trkBody");tb.innerHTML="";
+  TRACK.forEach(function(t){var tr=document.createElement("tr");if(t[1]===mo)tr.className="now";
+    [t[0],"±"+t[2]+"K af",t[3]+" of "+t[4]].forEach(function(x){tr.appendChild(h("td",null,x))});tb.appendChild(tr)});
+  var cb=(window.__D&&window.__D.extras&&window.__D.extras.cbrfc)||null,fc=cb&&(cb.official||cb.esp),card=$("fcCard");
+  if(!fc||!fc.q||fc.q["50"]==null){card.hidden=true;return}
+  var q=fc.q,need=A.x0-s0,p=pSpill(q,need),med=q["50"];
+  card.hidden=false;
+  $("fcOdds").textContent=fmt(p*100)+"%";$("fcOf").textContent="chance of a spill";
+  $("fcLede").textContent="The Colorado Basin River Forecast Center’s "+(cb.official?"official forecast":"daily model run")+" of "+day(Date.parse(fc.date+"T12:00:00-07:00"))+" puts April–July inflow at "+fmt(med)+",000 acre-feet ("+fmt(med/A.avg*100)+"% of average), with a one-in-ten chance each of less than "+fmt(q["90"])+",000 or more than "+fmt(q["10"])+",000. McPhee needs about "+fmt(Math.max(0,need))+",000 to reach the spill line. At the median, the model gives "+(A.slope*Math.max(0,s0+med-A.x0)<0.5?"no spill":"about "+fmt(A.slope*Math.max(0,s0+med-A.x0))+",000 spilled")+".";
+  $("fcUse").onclick=function(){var v=Math.max(20,Math.min(200,Math.round(med/A.avg*100/5)*5));$("aj").value=v;LADDER_SEL=null;spillUpdate()};
+}
 function drawOdds(s0){
   var host=$("oddsDots");host.innerHTML="";
   var f=function(x){return A.slope*Math.max(0,x-A.x0)};
