@@ -97,6 +97,13 @@ header{padding:24px 0 6px}
 .reset:focus-visible{outline:2px solid var(--water)}
 .readout{font-family:var(--mono);font-size:12px;color:var(--fg);min-height:18px}
 .big{font-size:52px}
+.dots{display:grid;grid-template-columns:repeat(13,minmax(0,1fr));gap:4px}
+.dots button{aspect-ratio:1;min-height:20px;border-radius:50%;border:1.5px solid var(--muted);background:none;padding:0;cursor:pointer}
+.dots button.big2{background:var(--water);border-color:var(--water)}
+.dots button.small{background:#2f6f80;border-color:#2f6f80}
+.dots button.toss{background:var(--warn);border-color:var(--warn)}
+.dots button[aria-pressed="true"]{outline:2px solid var(--fg);outline-offset:2px}
+.dots button:focus-visible{outline:2px solid var(--water);outline-offset:2px}
 .ladder{position:relative;display:grid}
 .lhead,.lrow{display:grid;grid-template-columns:52px minmax(0,1fr) 54px;gap:8px;align-items:center}
 .lhead{height:22px;padding:0 2px;font-family:var(--mono);font-size:11px;color:var(--muted)}
@@ -252,6 +259,15 @@ svg .lbl{fill:var(--fg)}
     <div class="eyebrow">04 · Will it spill?</div>
     <h2 id="h-spill">Two numbers decide it: what’s in McPhee on April 1, and what spring brings.</h2>
     <p class="lede" id="spillLede">Since 1988, McPhee has spilled in 21 of 39 springs, though only 4 of the last 15. Nearly every one of those springs follows the same rule: once April 1 storage plus April–July inflow passes about 486,000 acre-feet, the lake fills and roughly nine of every ten acre-feet beyond that go down the river.</p>
+    <div class="card split" id="oddsCard">
+      <div class="eyebrow">The odds, from 39 past springs</div>
+      <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap"><span class="num big" id="oddsN">—</span><span class="mono" id="oddsOf"></span></div>
+      <p class="lede" id="oddsLede"></p>
+      <div class="dots" id="oddsDots" role="group" aria-label="Each past spring's inflow applied to this year's starting storage"></div>
+      <div class="readout" id="oddsReadout">One dot per spring, driest first. Tap a dot to see that spring.</div>
+      <div class="legend"><span><span class="sw" style="background:var(--water);border-radius:50%"></span>Two weeks or more above 800 cfs</span><span><span class="sw" style="background:#2f6f80;border-radius:50%"></span>Shorter spill</span><span><span class="sw" style="background:var(--warn);border-radius:50%"></span>Toss-up, within the model’s error</span><span><span class="sw" style="background:transparent;border:1px solid var(--muted);border-radius:50%"></span>No spill</span></div>
+      <p class="mono" id="oddsNote"></p>
+    </div>
     <div class="card split">
       <label for="aj" class="mono" id="ajLabel">Drag: April–July inflow, % of average</label>
       <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap"><span class="num big" id="ajPct">100%</span><span class="mono" id="ajKaf"></span></div>
@@ -767,9 +783,29 @@ function spillUpdate(){
   else if(nd<45){v.textContent="A boating release of about "+nd+" days above 800 cfs.";v.style.color=C.water}
   else{v.textContent="A big release year: about "+nd+" days above 800 cfs.";v.style.color=C.water}
   if(inRunoff){v.textContent="Runoff is underway, so this rough model no longer applies. Watch DWCD’s operating plan instead.";v.style.color=C.muted}
-  $("math").textContent="Rough model from Reclamation’s daily record for 1988–2026, not DWCD’s operating plan. Spill ≈ "+A.slope.toFixed(2)+" × (April 1 storage + April–July inflow − "+fmt(A.x0)+" KAF); that fit misses actual spills by about 11 KAF on average. April 1 storage starts from "+(SP.fromProj?"projected storage after this storm":"today’s storage")+", "+fmt(b0)+" KAF, then adds the winter. From Nov 10 to Apr 1 a typical winter brings "+fmt(WIN_IN[1])+" KAF of inflow; take away "+fmt(relK,1)+" KAF of dam release ("+fmt(A.wrel)+" cfs), "+fmt(A.wdiv,1)+" KAF of canal diversions and about 1 KAF of evaporation, and the lake nets "+sgn(WIN_IN[1]-outK,1)+" KAF. A dry winter ("+fmt(WIN_IN[0])+" KAF of inflow) nets "+sgn(WIN_IN[0]-outK,1)+"; a wet one ("+fmt(WIN_IN[2])+") nets "+sgn(WIN_IN[2]-outK,1)+". Spills put about "+A.kday.toFixed(1)+" KAF downriver for each day above 800 cfs. The estimate is tuned for November through March; from August through October, irrigation is still drawing the lake down. Once CBRFC’s April–July forecast is issued in January, that forecast will replace the slider.";
-  if(LADDER_SEL===null||LADDER_SEL==="This yr")$("scReadout").textContent="This year, est.: "+fmt(s0)+"K on April 1 + "+fmt(aj)+"K in spring = "+fmt(s0+aj)+"K → "+(sp<0.5?"no spill.":"about "+fmt(sp)+"K spilled.");
-  drawLadder(s0,s0d,s0w,aj,sp);
+  $("math").textContent="Rough model from Reclamation’s daily record for 1988–2026, not DWCD’s operating plan. Spill ≈ "+A.slope.toFixed(2)+" × (April 1 storage + April–July inflow − "+fmt(A.x0)+" KAF). Tested by leaving each spring out and predicting it from the others, it misses the spill volume by about 12 KAF and called spill-or-no-spill right in 38 of 39 springs; the spill line has held steady, 477 to 486 KAF, across the 1990s, 2000s and 2010s. For a given spill, days above 800 cfs vary by about 10 either way, depending on how the release is run. April 1 storage starts from "+(SP.fromProj?"projected storage after this storm":"today’s storage")+", "+fmt(b0)+" KAF, then adds the winter. From Nov 10 to Apr 1 a typical winter brings "+fmt(WIN_IN[1])+" KAF of inflow; take away "+fmt(relK,1)+" KAF of dam release ("+fmt(A.wrel)+" cfs), "+fmt(A.wdiv,1)+" KAF of canal diversions and about 1 KAF of evaporation, and the lake nets "+sgn(WIN_IN[1]-outK,1)+" KAF. A dry winter ("+fmt(WIN_IN[0])+" KAF of inflow) nets "+sgn(WIN_IN[0]-outK,1)+"; a wet one ("+fmt(WIN_IN[2])+") nets "+sgn(WIN_IN[2]-outK,1)+". Spills put about "+A.kday.toFixed(1)+" KAF downriver for each day above 800 cfs. The estimate is tuned for November through March; from August through October, irrigation is still drawing the lake down. Once CBRFC’s April–July forecast is issued in January, that forecast will replace the slider.";
+  if(LADDER_SEL===null||LADDER_SEL==="This yr")$("scReadout").textContent="This year, est.: "+fmt(s0)+"K on April 1 + "+fmt(aj)+"K in spring = "+fmt(s0+aj)+"K → "+(sp<0.5?"no spill.":"about "+fmt(sp)+"K spilled, give or take "+ERR_KAF+"K.");
+  drawLadder(s0,s0d,s0w,aj,sp);drawOdds(s0);
+}
+/* Tested by leaving each spring out, refitting, and predicting it: typical miss 12 KAF (14.6 for springs at or past the line);
+   spill-or-no-spill called right in 38 of 39. Days above 800 cfs miss by about 10 for a given spill volume. */
+var ERR_KAF=12, ODDS_SEL=null;
+function drawOdds(s0){
+  var host=$("oddsDots");host.innerHTML="";
+  var f=function(x){return A.slope*Math.max(0,x-A.x0)};
+  var rows=HIST.map(function(r){var X=s0+r[2],sp=f(X),c=sp>=14*A.kday?"big2":sp>ERR_KAF?"small":Math.abs(X-A.x0)<=ERR_KAF/A.slope?"toss":"none";return {y:r[0],aj:r[2],X:X,sp:sp,c:c}}).sort(function(a,b){return a.aj-b.aj});
+  var n=function(c,from){return rows.filter(function(r){return r.c===c&&(!from||r.y>=from)}).length};
+  var big=n("big2"),small=n("small"),toss=n("toss"),tot=rows.length,rec=rows.filter(function(r){return r.y>=2000}).length;
+  $("oddsN").textContent=(big+small)+" of "+tot;
+  $("oddsOf").textContent="would spill · "+fmt((big+small)/tot*100)+"%";
+  $("oddsLede").textContent="Take the lake as it should stand on April 1, about "+fmt(s0)+",000 acre-feet, and add each spring’s actual inflow since 1988. "+(big+small)+" of those "+tot+" springs push it past the spill line, and "+big+" of them carry enough for two weeks or more above 800 cfs."+(toss?" Another "+toss+" land too close to call.":"");
+  $("oddsNote").textContent="Springs since 2000 have run drier, and counting only those the odds are "+(n("big2",2000)+n("small",2000))+" of "+rec+". This treats next spring as a random draw from the past; it doesn’t know this winter’s snowpack. The official forecast narrows it from January.";
+  rows.forEach(function(r){var b=h("button",r.c==="none"?"":r.c);b.type="button";
+    var d=r.y+"’s spring brought "+r.aj+"K. On this year’s start that makes "+fmt(r.X)+"K → "+(r.c==="none"?"no spill.":r.c==="toss"?"too close to call.":"about "+fmt(r.sp)+"K spilled, roughly "+fmt(Math.min(100,r.sp/A.kday))+" days above 800 cfs.");
+    b.setAttribute("aria-label",d);b.setAttribute("aria-pressed",String(ODDS_SEL===r.y));
+    b.addEventListener("click",function(){ODDS_SEL=r.y;$("oddsReadout").textContent=d;host.querySelectorAll("button").forEach(function(x){x.setAttribute("aria-pressed","false")});b.setAttribute("aria-pressed","true")});
+    if(ODDS_SEL===r.y)$("oddsReadout").textContent=d;
+    host.appendChild(b)});
 }
 var LADDER_ALL=false, LADDER_SEL=null;
 function drawLadder(s0,s0d,s0w,aj,sp){
