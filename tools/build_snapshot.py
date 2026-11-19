@@ -107,7 +107,12 @@ for gid, name, usid, lid, reach in GAUGES:
     out["gauges"][gid] = g
 
 # --- Water-year peak at Dolores (provisional, 15-minute data since Oct 1)
-wy = usgs_iv("09166500", "00060", start=wy_start.isoformat()).get("09166500", [])
+wy_both = usgs_iv("09166500,09165000", "00060", start=wy_start.isoformat())
+wy = wy_both.get("09166500", [])
+# Hourly flow since Oct 1 at Dolores and Rico, so the page can show earlier storms than its own 15-day fetch covers
+out["extras"]["upper"] = {"since": wy_start.isoformat(),
+                          "dolores": [[t, v] for t, v in wy if t % 3600000 == 0],
+                          "rico": [[t, v] for t, v in wy_both.get("09165000", []) if t % 3600000 == 0]}
 if wy:
     t, v = max(wy, key=lambda p: p[1])
     out["extras"]["wyPeak"] = {"site": "09166500", "t": t, "cfs": v, "since": wy_start.isoformat()}

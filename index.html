@@ -83,6 +83,7 @@ header{padding:24px 0 6px}
 .split{display:grid;gap:14px}
 .seg{display:inline-flex;border:1px solid var(--faint);border-radius:999px;padding:2px}
 .seg button{font-family:var(--mono);font-size:12px;color:var(--muted);background:none;border:0;border-radius:999px;padding:5px 11px;cursor:pointer}
+.seg button:disabled{opacity:.4;cursor:default}
 .seg button[aria-pressed="true"]{background:rgba(99,199,226,.16);color:var(--fg)}
 .seg button:focus-visible{outline:2px solid var(--water);outline-offset:1px}
 .agrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
@@ -222,6 +223,8 @@ svg .lbl{fill:var(--fg)}
     <div class="eyebrow">02 · Headwaters</div>
     <h2 id="h-head">—</h2>
     <div class="card split">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><div class="eyebrow" id="hydroTitle">Dolores at Dolores</div>
+        <div class="seg" role="group" aria-label="Chart start"><button type="button" data-hr="14" aria-pressed="true">2 weeks</button><button type="button" data-hr="30" aria-pressed="false">1 month</button><button type="button" data-hr="wy" aria-pressed="false">Since Oct 1</button></div></div>
       <div class="readout" id="hydroReadout">Touch or hover the chart to read it.</div>
       <div class="chart" id="hydro"></div>
       <div class="legend"><span><span class="sw" style="background:#9fdcec"></span>Rico gauge: top 106 mi² of the mainstem</span><span><span class="sw" style="background:var(--water)"></span>Rest of the 504 mi² above Dolores</span><span><span class="sw" style="background:transparent;border:1px dashed var(--fg)"></span>NWS forecast</span></div>
@@ -592,7 +595,13 @@ function render(D){
   var gap=h("div","gap","No NRCS sensor reports snow below 9,160′ in the Dolores basin. Groundhog is a manual snow course, read about monthly in winter. The nearest SNOTEL below 9,000′ is Cascade #2 (8,990′), over the divide in the Animas basin.");L.appendChild(gap);
 
   /* headwaters hydrograph */
-  var ser=lastN(dol.series,14), rs=lastN(rico.series,14);
+  /* longer history comes with the snapshot (hourly since Oct 1); the live 15 days go on the end */
+  var UP=(D.extras&&D.extras.upper)||{};
+  var longer=function(old,liveS){if(!old||!old.length)return liveS||[];if(!liveS||!liveS.length)return old;var t0=liveS[0][0];return old.filter(function(p){return p[0]<t0}).concat(liveS)};
+  var dAll=longer(UP.dolores,dol.series), rAll=longer(UP.rico,rico.series);
+  var ser=HRANGE==="wy"?dAll:lastN(dAll,+HRANGE), rs=HRANGE==="wy"?rAll:lastN(rAll,+HRANGE);
+  var hasLong=dAll.length&&dol.series.length&&dAll[0][0]<dol.series[0][0]-864e5;
+  document.querySelectorAll("[data-hr]").forEach(function(b){b.setAttribute("aria-pressed",String(b.getAttribute("data-hr")===String(HRANGE)));if(b.getAttribute("data-hr")!=="14")b.disabled=!hasLong});
   var restS=ser.map(function(p){var r=nearest(rs,p[0]);return [p[0],Math.max(0,p[1]-(r&&Math.abs(r[0]-p[0])<36e5?r[1]:0))]});
   var rpk=Math.max.apply(null,ser.map(function(p){return p[1]}));
   var restNow=restS.length?restS[restS.length-1][1]:null;
@@ -602,7 +611,7 @@ function render(D){
   var pl="";
   if(pkRank)pl="This water year’s peak at Dolores, "+fmt(wyPk.cfs)+" cfs on "+day(wyPk.t)+", is the "+ord(pkRank)+"-highest in USGS annual peak records going back to 1896"+(pkRank===2?"; only October 1911, at 10,000 cfs, ran higher":"")+(nxPk&&(wyPk.cfs-nxPk[1])/nxPk[1]<0.03?", and it sits just ahead of "+nxPk[0].slice(0,4)+"’s "+fmt(nxPk[1]):"")+". It’s provisional, and USGS has already revised it once, from 9,490.";
   $("headLede").textContent=hl;$("peakLede").textContent=pl;
-  drawHydro($("hydro"),ser,rs,dol.forecast||[],(wyPk&&ser.length&&wyPk.t>=ser[0][0])?wyPk:null,pkRank);
+  drawHydro($("hydro"),ser,rs,dol.forecast||[],(wyPk&&ser.length&&wyPk.t>=ser[0][0])?wyPk:null,(wyPk&&ser.length&&wyPk.t>=ser[0][0])?pkRank:null);
   var HT=$("headTiles");HT.innerHTML="";
   [["rico","106 mi² at the top of the mainstem · gauge at 8,427′"],["westfork","162 mi² · USGS posts no live flow for this gauge"],["lostcanyon","71 mi² · enters McPhee below the Dolores gauge"],["dolores","504 mi² · main inflow to McPhee"]].forEach(function(x){tile(HT,G[x[0]],x[1],C.water)});
 
@@ -704,7 +713,7 @@ function drawHydro(host,dol,rico,fc,wp,rank){
   var x0=dol[0][0],x1=fc.length?fc[fc.length-1][0]:nowT;
   var ymax=Math.max.apply(null,dol.concat(fc).concat(wp?[[wp.t,wp.cfs]]:[]).map(function(p){return p[1]}))*1.08;
   var X=scale(x0,x1,L,W-R),Y=scale(0,ymax,H-B,T);
-  var s=el("svg",{viewBox:"0 0 "+W+" "+H,width:"100%",role:"img","aria-label":"Dolores at Dolores flow, last 14 days with NWS forecast; split between the Rico gauge and the rest of the upper basin"},host);
+  var s=el("svg",{viewBox:"0 0 "+W+" "+H,width:"100%",role:"img","aria-label":"Dolores at Dolores flow over the selected period, with the NWS forecast when one is issued; split between the Rico gauge and the rest of the upper basin"},host);
   var step=ymax>6000?2000:ymax>2500?1000:ymax>1000?500:200;
   for(var v=step;v<ymax;v+=step){el("line",{x1:L,x2:W-R,y1:Y(v),y2:Y(v),stroke:C.faint},s);txt(s,W-R+6,Y(v)+4,v>=1000?(v/1000)+"K":v)}
   el("rect",{x:X(nowT),y:T,width:Math.max(0,W-R-X(nowT)),height:H-B-T,fill:C.fg,"fill-opacity":".03"},s);
@@ -719,7 +728,7 @@ function drawHydro(host,dol,rico,fc,wp,rank){
   var lines=["peak "+fmt(pk[1])].concat(rank?[ord(rank)+" since 1896"]:[]),pw=Math.max.apply(null,lines.map(function(l){return l.length}))*6.7;
   var pleft=X(pk[0])-8-pw>=L;
   lines.forEach(function(l,i){txt(s,pleft?X(pk[0])-8:X(pk[0])+8,Y(pk[1])+4+i*14,l,{"text-anchor":pleft?"end":"start",class:i?"":"lbl"})});
-  txt(s,X(nowT)+5,H-B-6,"forecast",{fill:C.fg});
+  if(fc.length)txt(s,X(nowT)+5,H-B-6,"forecast",{fill:C.fg});
   txt(s,L,H-6,day(x0));txt(s,X(nowT),H-6,"now",{"text-anchor":"middle"});if(fc.length)txt(s,W-R,H-6,day(x1),{"text-anchor":"end"});
   scrub(s,W,L,R,x0,x1,function(t){
     if(t>nowT&&fc.length){var f=nearest(fc,t);$("hydroReadout").textContent=when(f[0])+" · NWS forecast "+fmt(f[1])+" cfs";return}
@@ -898,7 +907,8 @@ function drawBands(host,marks){
 
 /* ---------- boot ---------- */
 $("aj").addEventListener("input",function(){LADDER_SEL=null;spillUpdate()});
-var DATA=null,t,RANGE="storm";
+var DATA=null,t,RANGE="storm",HRANGE="14";
+document.querySelectorAll("[data-hr]").forEach(function(b){b.addEventListener("click",function(){HRANGE=b.getAttribute("data-hr");draw()})});
 var AIN={aFactor:"factor",aX0:"x0",aSlope:"slope",aWrel:"wrel",aWdiv:"wdiv",aAvg:"avg",aKday:"kday"};
 /* live cfs equivalents for the two volume fields: 1 cfs for a day = 1.9835 af */
 function updConv(){
